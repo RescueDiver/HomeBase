@@ -1,0 +1,35 @@
+{
+  "home": {
+    "name": "HomeBase"
+  },
+  "weather": {
+    "location": "Your City, State",
+    "temperature_unit": "fahrenheit",
+    "forecast_days": 5
+  },
+  "calendar": {
+    "first_day_of_week": "sunday",
+    "members": [
+      {
+        "name": "Person 1",
+        "color": "#FF00FF"
+      },
+      {
+        "name": "Person 2",
+        "color": "#81D8D0"
+      },
+      {
+        "name": "Person 3",
+        "color": "#1b5935"
+      },
+      {
+        "name": "Person 4",
+        "color": "#800000"
+      },
+      {
+        "name": "Family",
+        "color": "#a855f7"
+      }
+    ]
+  }
+}

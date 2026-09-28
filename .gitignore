@@ -1,0 +1,14 @@
+# Google credentials
+credentials.json
+token.json
+
+# Local database
+data/homebase.db
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# IDE
+.idea/
