@@ -3,6 +3,7 @@ import sqlite3
 DATABASE = "data/homebase.db"
 
 
+
 def ensure_event_columns(connection):
     """
     Make sure the events table has the columns needed
@@ -210,6 +211,9 @@ def save_google_event(
                 source_id
             )
         )
+    connection.commit()
+    connection.close()
+
 
 def update_event(
     event_id,
@@ -314,3 +318,29 @@ def update_event(
 
     connection.commit()
     connection.close()
+
+
+def initialize_database():
+    connection = sqlite3.connect(DATABASE, timeout=10)
+
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            date TEXT NOT NULL,
+            time TEXT,
+            title TEXT NOT NULL,
+            member TEXT,
+            source TEXT DEFAULT 'local',
+            source_id TEXT,
+            repeat_type TEXT DEFAULT 'none',
+            repeat_until TEXT
+        )
+        """
+    )
+
+    connection.commit()
+    connection.close()
+
+if __name__ == "__main__":
+    initialize_database()

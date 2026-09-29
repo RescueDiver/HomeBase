@@ -1,5 +1,5 @@
 from database import save_google_event
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from google.auth.transport.requests import Request
@@ -58,8 +58,6 @@ def get_google_calendar_service():
 def get_calendar_events(service, calendar_id):
     now = datetime.now(LOCAL_TIMEZONE)
 
-    # Start at midnight on the first day
-    # of the current month.
     month_start = now.replace(
         day=1,
         hour=0,
@@ -68,6 +66,10 @@ def get_calendar_events(service, calendar_id):
         microsecond=0
     )
 
+    # Only pull about one year ahead.
+    # HomeBase will sync again long before we need anything beyond that.
+    sync_end = month_start + timedelta(days=370)
+
     events = []
     page_token = None
 
@@ -75,6 +77,7 @@ def get_calendar_events(service, calendar_id):
         result = service.events().list(
             calendarId=calendar_id,
             timeMin=month_start.isoformat(),
+            timeMax=sync_end.isoformat(),
             singleEvents=True,
             orderBy="startTime",
             maxResults=2500,
@@ -132,6 +135,47 @@ def convert_google_event(event):
         )
     }
 
+def get_member_for_google_event(event):
+    color_id = event.get("colorId")
+    creator_email = (
+        event.get("creator", {})
+        .get("email", "")
+        .lower()
+    )
+    title = event.get("summary", "").lower()
+
+    school_keywords = [
+        "no school",
+        "early dismissal",
+        "christmas break",
+        "last day of school",
+        "spring break",
+        "first day of school",
+    ]
+
+    if any(keyword in title for keyword in school_keywords):
+        return "Family"
+
+    # Google event color overrides
+    if color_id == "10":
+        return "Person 3"
+
+    if color_id == "11":
+        return "Family"
+
+    if color_id == "5":
+        return "Family"
+
+    # Otherwise fall back to creator
+    if creator_email == "user1@example.com":
+        return "Person 1"
+
+    if creator_email == "user2@example.com":
+        return "Person 2"
+
+    return "Family"
+
+
 
 if __name__ == "__main__":
     service = get_google_calendar_service()
@@ -158,11 +202,13 @@ if __name__ == "__main__":
             event
         )
 
+        member = get_member_for_google_event(event)
+
         save_google_event(
             date=converted["date"],
             time=converted["time"],
             title=converted["title"],
-            member="Family",
+            member=member,
             source_id=converted["source_id"]
         )
 
@@ -172,8 +218,11 @@ if __name__ == "__main__":
             converted["date"],
             converted["time"],
             "-",
-            converted["title"]
+            converted["title"],
+            "| Member:",
+            member
         )
+
 
     print()
     print("=" * 60)
