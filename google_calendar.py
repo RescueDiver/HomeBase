@@ -1,11 +1,15 @@
-from database import save_google_event
+import json
+
 from datetime import datetime, timedelta
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
+
+from database import save_google_event
 
 
 SCOPES = [
@@ -14,9 +18,12 @@ SCOPES = [
 
 LOCAL_TIMEZONE = ZoneInfo("America/New_York")
 
-FAMILY_CALENDAR_ID = (
-    "family-calendar-id"
-    "@group.calendar.google.com"
+PRIVATE_SETTINGS_FILE = Path(
+    "config/settings.local.json"
+)
+
+EXAMPLE_SETTINGS_FILE = Path(
+    "config/settings.example.json"
 )
 
 HOLIDAY_CALENDAR_ID = (
@@ -24,20 +31,38 @@ HOLIDAY_CALENDAR_ID = (
 )
 
 
+def load_settings():
+    """
+    Load private local settings when available.
+
+    Fall back to the GitHub-safe example settings
+    if the private file does not exist.
+    """
+
+    if PRIVATE_SETTINGS_FILE.exists():
+        settings_file = PRIVATE_SETTINGS_FILE
+    else:
+        settings_file = EXAMPLE_SETTINGS_FILE
+
+    with settings_file.open(
+        "r",
+        encoding="utf-8"
+    ) as file:
+        return json.load(file)
+
+
 def get_google_calendar_service():
     credentials = None
 
-    try:
-        credentials = Credentials.from_authorized_user_file(
-            "token.json",
-            SCOPES
+    if Path("token.json").exists():
+        credentials = (
+            Credentials.from_authorized_user_file(
+                "token.json",
+                SCOPES
+            )
         )
 
-    except FileNotFoundError:
-        pass
-
     if not credentials or not credentials.valid:
-
         if (
             credentials
             and credentials.expired
@@ -46,14 +71,22 @@ def get_google_calendar_service():
             credentials.refresh(Request())
 
         else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                "credentials.json",
-                SCOPES
+            flow = (
+                InstalledAppFlow.from_client_secrets_file(
+                    "credentials.json",
+                    SCOPES
+                )
             )
 
-            credentials = flow.run_local_server(port=0)
+            credentials = flow.run_local_server(
+                port=0
+            )
 
-        with open("token.json", "w") as token_file:
+        with open(
+            "token.json",
+            "w",
+            encoding="utf-8"
+        ) as token_file:
             token_file.write(
                 credentials.to_json()
             )
@@ -65,7 +98,10 @@ def get_google_calendar_service():
     )
 
 
-def get_calendar_events(service, calendar_id):
+def get_calendar_events(
+    service,
+    calendar_id
+):
     now = datetime.now(
         LOCAL_TIMEZONE
     )
@@ -78,8 +114,9 @@ def get_calendar_events(service, calendar_id):
         microsecond=0
     )
 
-    sync_end = month_start + timedelta(
-        days=370
+    sync_end = (
+        month_start
+        + timedelta(days=370)
     )
 
     events = []
@@ -117,10 +154,12 @@ def convert_google_event(event):
     start = event["start"]
 
     if "dateTime" in start:
-        event_datetime = datetime.fromisoformat(
-            start["dateTime"].replace(
-                "Z",
-                "+00:00"
+        event_datetime = (
+            datetime.fromisoformat(
+                start["dateTime"].replace(
+                    "Z",
+                    "+00:00"
+                )
             )
         )
 
@@ -153,7 +192,10 @@ def convert_google_event(event):
     }
 
 
-def get_member_for_google_event(event):
+def get_member_for_google_event(
+    event,
+    google_settings
+):
     color_id = event.get(
         "colorId"
     )
@@ -190,26 +232,23 @@ def get_member_for_google_event(event):
     ):
         return "Family"
 
-    if color_id == "10":
-        return "Person 3"
+    color_members = google_settings.get(
+        "color_members",
+        {}
+    )
 
-    if color_id == "11":
-        return "Family"
+    if color_id in color_members:
+        return color_members[color_id]
 
-    if color_id == "5":
-        return "Family"
+    creator_members = google_settings.get(
+        "creator_members",
+        {}
+    )
 
-    if (
-        creator_email
-        == "user1@example.com"
-    ):
-        return "Person 1"
-
-    if (
-        creator_email
-        == "user2@example.com"
-    ):
-        return "Person 2"
+    if creator_email in creator_members:
+        return creator_members[
+            creator_email
+        ]
 
     return "Family"
 
@@ -218,6 +257,7 @@ def sync_calendar(
     service,
     calendar_id,
     calendar_name,
+    google_settings,
     force_member=None
 ):
     events = get_calendar_events(
@@ -228,15 +268,18 @@ def sync_calendar(
     print()
     print("=" * 60)
     print(
-        f"HOMEBASE - {calendar_name.upper()} SYNC"
+        f"HOMEBASE - "
+        f"{calendar_name.upper()} SYNC"
     )
     print("=" * 60)
 
     saved_count = 0
 
     for event in events:
-        converted = convert_google_event(
-            event
+        converted = (
+            convert_google_event(
+                event
+            )
         )
 
         if force_member:
@@ -244,7 +287,8 @@ def sync_calendar(
         else:
             member = (
                 get_member_for_google_event(
-                    event
+                    event,
+                    google_settings
                 )
             )
 
@@ -280,21 +324,42 @@ def sync_calendar(
     return saved_count
 
 
-if __name__ == "__main__":
+def main():
+    settings = load_settings()
+
+    google_settings = settings.get(
+        "google_calendar",
+        {}
+    )
+
+    family_calendar_id = (
+        google_settings.get(
+            "family_calendar_id"
+        )
+    )
+
+    if not family_calendar_id:
+        raise ValueError(
+            "Missing google_calendar.family_calendar_id "
+            "in config/settings.local.json"
+        )
+
     service = (
         get_google_calendar_service()
     )
 
     family_count = sync_calendar(
         service=service,
-        calendar_id=FAMILY_CALENDAR_ID,
-        calendar_name="Family Calendar"
+        calendar_id=family_calendar_id,
+        calendar_name="Family Calendar",
+        google_settings=google_settings
     )
 
     holiday_count = sync_calendar(
         service=service,
         calendar_id=HOLIDAY_CALENDAR_ID,
         calendar_name="U.S. Holidays",
+        google_settings=google_settings,
         force_member="Family"
     )
 
@@ -310,3 +375,7 @@ if __name__ == "__main__":
         f"{total_count} Google events."
     )
     print("=" * 60)
+
+
+if __name__ == "__main__":
+    main()

@@ -1,16 +1,46 @@
-import json
-import requests
 import calendar
+import json
 
 from datetime import datetime, timedelta
-from database import ( get_events, add_event, delete_event, get_event, update_event,)
-from flask import Flask, render_template, request, redirect
+from pathlib import Path
+
+import requests
+
+from flask import Flask, redirect, render_template, request
+
+from database import (
+    add_event,
+    delete_event,
+    get_event,
+    get_events,
+    update_event,
+)
+
 
 app = Flask(__name__)
 
 
+PRIVATE_SETTINGS_FILE = Path("config/settings.local.json")
+EXAMPLE_SETTINGS_FILE = Path("config/settings.example.json")
+
+
 def load_settings():
-    with open("config/settings.json", "r") as file:
+    """
+    Load private local settings when available.
+
+    If the private settings file does not exist, fall back to the
+    GitHub-safe example settings file.
+    """
+
+    if PRIVATE_SETTINGS_FILE.exists():
+        settings_file = PRIVATE_SETTINGS_FILE
+    else:
+        settings_file = EXAMPLE_SETTINGS_FILE
+
+    with settings_file.open(
+        "r",
+        encoding="utf-8"
+    ) as file:
         return json.load(file)
 
 
@@ -21,16 +51,23 @@ def get_coordinates(location):
         "name": location,
         "count": 1,
         "language": "en",
-        "format": "json"
+        "format": "json",
     }
 
-    response = requests.get(url, params=params, timeout=10)
+    response = requests.get(
+        url,
+        params=params,
+        timeout=10,
+    )
+
     response.raise_for_status()
 
     data = response.json()
 
-    if "results" not in data or not data["results"]:
-        raise ValueError(f"Could not find weather location: {location}")
+    if not data.get("results"):
+        raise ValueError(
+            f"Could not find weather location: {location}"
+        )
 
     result = data["results"][0]
 
@@ -39,7 +76,7 @@ def get_coordinates(location):
         "state": result.get("admin1", ""),
         "latitude": result["latitude"],
         "longitude": result["longitude"],
-        "timezone": result["timezone"]
+        "timezone": result["timezone"],
     }
 
 
@@ -85,7 +122,11 @@ def get_weather(location, forecast_days=5):
     params = {
         "latitude": coordinates["latitude"],
         "longitude": coordinates["longitude"],
-        "current": "temperature_2m,weather_code,cloud_cover",
+        "current": (
+            "temperature_2m,"
+            "weather_code,"
+            "cloud_cover"
+        ),
         "daily": (
             "weather_code,"
             "temperature_2m_max,"
@@ -94,48 +135,86 @@ def get_weather(location, forecast_days=5):
         ),
         "temperature_unit": "fahrenheit",
         "timezone": coordinates["timezone"],
-        "forecast_days": forecast_days
+        "forecast_days": forecast_days,
     }
 
-    response = requests.get(url, params=params, timeout=10)
+    response = requests.get(
+        url,
+        params=params,
+        timeout=10,
+    )
+
     response.raise_for_status()
 
     data = response.json()
 
-    current_description, current_icon = weather_description(
-        data["current"]["weather_code"]
+    current_description, current_icon = (
+        weather_description(
+            data["current"]["weather_code"]
+        )
     )
 
     forecast = []
 
-    for i, date_text in enumerate(data["daily"]["time"]):
-        date = datetime.strptime(date_text, "%Y-%m-%d")
-
-        description, icon = weather_description(
-            data["daily"]["weather_code"][i]
+    for index, date_text in enumerate(
+        data["daily"]["time"]
+    ):
+        date = datetime.strptime(
+            date_text,
+            "%Y-%m-%d",
         )
 
-        if i == 0:
+        description, icon = weather_description(
+            data["daily"]["weather_code"][index]
+        )
+
+        if index == 0:
             day_name = "TODAY"
         else:
-            day_name = date.strftime("%a").upper()
+            day_name = date.strftime(
+                "%a"
+            ).upper()
 
-        forecast.append({
-            "day": day_name,
-            "icon": icon,
-            "description": description,
-            "high": round(data["daily"]["temperature_2m_max"][i]),
-            "low": round(data["daily"]["temperature_2m_min"][i]),
-            "rain": data["daily"]["precipitation_probability_max"][i]
-        })
+        forecast.append(
+            {
+                "day": day_name,
+                "icon": icon,
+                "description": description,
+                "high": round(
+                    data[
+                        "daily"
+                    ][
+                        "temperature_2m_max"
+                    ][index]
+                ),
+                "low": round(
+                    data[
+                        "daily"
+                    ][
+                        "temperature_2m_min"
+                    ][index]
+                ),
+                "rain": data[
+                    "daily"
+                ][
+                    "precipitation_probability_max"
+                ][index],
+            }
+        )
 
     return {
         "location": coordinates,
-        "temperature": round(data["current"]["temperature_2m"]),
-        "cloud_cover": data["current"]["cloud_cover"],
+        "temperature": round(
+            data["current"]["temperature_2m"]
+        ),
+        "cloud_cover": data[
+            "current"
+        ][
+            "cloud_cover"
+        ],
         "description": current_description,
         "icon": current_icon,
-        "forecast": forecast
+        "forecast": forecast,
     }
 
 
@@ -144,17 +223,17 @@ def get_event_occurrences(
     repeat_type,
     repeat_until,
     year,
-    month
+    month,
 ):
     start = datetime.strptime(
         start_date,
-        "%Y-%m-%d"
+        "%Y-%m-%d",
     ).date()
 
     if repeat_until:
         end = datetime.strptime(
             repeat_until,
-            "%Y-%m-%d"
+            "%Y-%m-%d",
         ).date()
     else:
         end = None
@@ -162,7 +241,10 @@ def get_event_occurrences(
     occurrences = []
 
     if repeat_type == "none":
-        if start.year == year and start.month == month:
+        if (
+            start.year == year
+            and start.month == month
+        ):
             occurrences.append(start)
 
         return occurrences
@@ -182,7 +264,10 @@ def get_event_occurrences(
         ):
             break
 
-        if current.year == year and current.month == month:
+        if (
+            current.year == year
+            and current.month == month
+        ):
             occurrences.append(current)
 
         if repeat_type == "weekly":
@@ -199,53 +284,33 @@ def get_event_occurrences(
                 next_month = 1
                 next_year += 1
 
-            try:
-                current = current.replace(
-                    year=next_year,
-                    month=next_month
-                )
+            while True:
+                try:
+                    current = current.replace(
+                        year=next_year,
+                        month=next_month,
+                    )
+                    break
 
-            except ValueError:
-                test_month = next_month
-                test_year = next_year
+                except ValueError:
+                    next_month += 1
 
-                while True:
-                    test_month += 1
-
-                    if test_month == 13:
-                        test_month = 1
-                        test_year += 1
-
-                    try:
-                        current = current.replace(
-                            year=test_year,
-                            month=test_month
-                        )
-                        break
-
-                    except ValueError:
-                        continue
+                    if next_month == 13:
+                        next_month = 1
+                        next_year += 1
 
         elif repeat_type == "yearly":
             next_year = current.year + 1
 
-            try:
-                current = current.replace(
-                    year=next_year
-                )
+            while True:
+                try:
+                    current = current.replace(
+                        year=next_year
+                    )
+                    break
 
-            except ValueError:
-                while True:
+                except ValueError:
                     next_year += 1
-
-                    try:
-                        current = current.replace(
-                            year=next_year
-                        )
-                        break
-
-                    except ValueError:
-                        continue
 
         else:
             break
@@ -253,32 +318,16 @@ def get_event_occurrences(
     return occurrences
 
 
-@app.route("/")
-def home():
-    settings = load_settings()
-
-    today = datetime.now()
-
-    year = today.year
-    month = today.month
-    month_name = calendar.month_name[month]
-
-    cal = calendar.Calendar(firstweekday=6)
-    month_weeks = cal.monthdayscalendar(year, month)
-
-    weather_settings = settings["weather"]
-
-    weather = get_weather(
-        weather_settings["location"],
-        weather_settings["forecast_days"]
-    )
-
-    database_events = get_events()
-
-    member_colors = {
-        member["name"]: member["color"]
-        for member in settings["calendar"]["members"]
-    }
+def build_calendar_events(
+    database_events,
+    member_colors,
+    year,
+    month,
+):
+    """
+    Convert database rows into the dictionary used
+    by the calendar templates.
+    """
 
     events = {}
 
@@ -291,7 +340,7 @@ def home():
         source,
         source_id,
         repeat_type,
-        repeat_until
+        repeat_until,
     ) in database_events:
 
         occurrence_dates = get_event_occurrences(
@@ -299,7 +348,7 @@ def home():
             repeat_type or "none",
             repeat_until,
             year,
-            month
+            month,
         )
 
         for occurrence_date in occurrence_dates:
@@ -308,18 +357,80 @@ def home():
             if event_day not in events:
                 events[event_day] = []
 
-            events[event_day].append({
-                "id": event_id,
-                "time": event_time,
-                "title": title,
-                "member": member,
-                "color": member_colors.get(
-                    member,
-                    "#FFFFFF"
-                ),
-                "source": source,
-                "repeat_type": repeat_type or "none"
-            })
+            events[event_day].append(
+                {
+                    "id": event_id,
+                    "time": event_time,
+                    "title": title,
+                    "member": member,
+                    "color": member_colors.get(
+                        member,
+                        "#FFFFFF",
+                    ),
+                    "source": source,
+                    "repeat_type": (
+                        repeat_type or "none"
+                    ),
+                }
+            )
+
+    return events
+
+
+def get_member_colors(settings):
+    return {
+        member["name"]: member["color"]
+        for member in settings[
+            "calendar"
+        ][
+            "members"
+        ]
+    }
+
+
+@app.route("/")
+def home():
+    settings = load_settings()
+
+    today = datetime.now()
+
+    year = today.year
+    month = today.month
+
+    month_name = calendar.month_name[
+        month
+    ]
+
+    cal = calendar.Calendar(
+        firstweekday=6
+    )
+
+    month_weeks = (
+        cal.monthdayscalendar(
+            year,
+            month,
+        )
+    )
+
+    weather_settings = settings["weather"]
+
+    weather = get_weather(
+        weather_settings["location"],
+        weather_settings["forecast_days"],
+    )
+
+    database_events = get_events()
+
+    member_colors = get_member_colors(
+        settings
+    )
+
+    events = build_calendar_events(
+        database_events,
+        member_colors,
+        year,
+        month,
+    )
 
     return render_template(
         "dashboard.html",
@@ -330,14 +441,26 @@ def home():
         today=today.day,
         weather=weather,
         events=events,
-        members=settings["calendar"]["members"],
+        members=settings[
+            "calendar"
+        ][
+            "members"
+        ],
     )
 
 
-@app.route("/add-event", methods=["GET", "POST"])
+@app.route(
+    "/add-event",
+    methods=["GET", "POST"],
+)
 def add_event_page():
     settings = load_settings()
-    members = settings["calendar"]["members"]
+
+    members = settings[
+        "calendar"
+    ][
+        "members"
+    ]
 
     if request.method == "POST":
         date = request.form["date"]
@@ -345,18 +468,26 @@ def add_event_page():
         hour = request.form["hour"]
         minute = request.form["minute"]
         ampm = request.form["ampm"]
-        time = f"{hour}:{minute} {ampm}"
 
-        title = request.form["title"].strip()
+        time = (
+            f"{hour}:{minute} {ampm}"
+        )
+
+        title = request.form[
+            "title"
+        ].strip()
+
         member = request.form["member"]
 
         repeat_type = request.form.get(
             "repeat_type",
-            "none"
+            "none",
         )
 
         repeat_until = (
-            request.form.get("repeat_until")
+            request.form.get(
+                "repeat_until"
+            )
             or None
         )
 
@@ -367,8 +498,12 @@ def add_event_page():
 
         if member not in valid_members:
             return (
-                f"Invalid family member: {member}. "
-                "Please go back and select a valid person.",
+                (
+                    f"Invalid family member: "
+                    f"{member}. "
+                    "Please go back and select "
+                    "a valid person."
+                ),
                 400,
             )
 
@@ -385,70 +520,141 @@ def add_event_page():
 
     return render_template(
         "add_event.html",
-        members=members
+        members=members,
     )
 
-@app.route("/delete-event/<int:event_id>", methods=["POST"])
+
+@app.route(
+    "/edit-event/<int:event_id>",
+    methods=["GET", "POST"],
+)
+def edit_event_page(event_id):
+    settings = load_settings()
+
+    members = settings[
+        "calendar"
+    ][
+        "members"
+    ]
+
+    event = get_event(event_id)
+
+    if event is None:
+        return "Event not found", 404
+
+    if event[5] != "local":
+        return (
+            "Google events cannot be edited here.",
+            403,
+        )
+
+    if request.method == "POST":
+        date = request.form["date"]
+
+        hour = request.form["hour"]
+        minute = request.form["minute"]
+        ampm = request.form["ampm"]
+
+        time = (
+            f"{hour}:{minute} {ampm}"
+        )
+
+        title = request.form[
+            "title"
+        ].strip()
+
+        member = request.form["member"]
+
+        repeat_type = request.form.get(
+            "repeat_type",
+            "none",
+        )
+
+        repeat_until = (
+            request.form.get(
+                "repeat_until"
+            )
+            or None
+        )
+
+        valid_members = [
+            person["name"]
+            for person in members
+        ]
+
+        if member not in valid_members:
+            return (
+                (
+                    f"Invalid family member: "
+                    f"{member}."
+                ),
+                400,
+            )
+
+        update_event(
+            event_id,
+            date,
+            time,
+            title,
+            member,
+            repeat_type,
+            repeat_until,
+        )
+
+        return redirect("/")
+
+    return render_template(
+        "edit_event.html",
+        event=event,
+        members=members,
+    )
+
+
+@app.route(
+    "/delete-event/<int:event_id>",
+    methods=["POST"],
+)
 def delete_event_page(event_id):
     delete_event(event_id)
     return redirect("/")
 
-@app.route("/dev-calendar/<int:year>/<int:month>")
+
+@app.route(
+    "/dev-calendar/<int:year>/<int:month>"
+)
 def dev_calendar(year, month):
     settings = load_settings()
 
     if month < 1 or month > 12:
         return "Invalid month", 400
 
-    month_name = calendar.month_name[month]
+    month_name = calendar.month_name[
+        month
+    ]
 
-    cal = calendar.Calendar(firstweekday=6)
-    month_weeks = cal.monthdayscalendar(year, month)
+    cal = calendar.Calendar(
+        firstweekday=6
+    )
+
+    month_weeks = (
+        cal.monthdayscalendar(
+            year,
+            month,
+        )
+    )
 
     database_events = get_events()
 
-    member_colors = {
-        member["name"]: member["color"]
-        for member in settings["calendar"]["members"]
-    }
+    member_colors = get_member_colors(
+        settings
+    )
 
-    events = {}
-
-    for (
-        event_id,
-        event_date,
-        event_time,
-        title,
-        member,
-        source,
-        source_id,
-        repeat_type,
-        repeat_until
-    ) in database_events:
-
-        occurrence_dates = get_event_occurrences(
-            event_date,
-            repeat_type or "none",
-            repeat_until,
-            year,
-            month
-        )
-
-        for occurrence_date in occurrence_dates:
-            event_day = occurrence_date.day
-
-            if event_day not in events:
-                events[event_day] = []
-
-            events[event_day].append({
-                "id": event_id,
-                "time": event_time,
-                "title": title,
-                "member": member,
-                "color": member_colors.get(member, "#FFFFFF"),
-                "source": source,
-                "repeat_type": repeat_type or "none"
-            })
+    events = build_calendar_events(
+        database_events,
+        member_colors,
+        year,
+        month,
+    )
 
     if month == 1:
         previous_year = year - 1
@@ -471,13 +677,16 @@ def dev_calendar(year, month):
         month_name=month_name,
         month_weeks=month_weeks,
         events=events,
-        members=settings["calendar"]["members"],
+        members=settings[
+            "calendar"
+        ][
+            "members"
+        ],
         previous_year=previous_year,
         previous_month=previous_month,
         next_year=next_year,
         next_month=next_month,
     )
-
 
 
 if __name__ == "__main__":
