@@ -1,24 +1,55 @@
-import sqlite3
+from database import get_events
 
-connection = sqlite3.connect("data/homebase.db")
 
-rows = connection.execute(
+def main():
     """
-    SELECT
-        id,
-        date,
-        time,
+    Print Google Calendar events currently stored
+    in the HomeBase database.
+    """
+    events = get_events()
+
+    google_events = [
+        event
+        for event in events
+        if event[5] == "google"
+    ]
+
+    if not google_events:
+        print("No Google events found.")
+        return
+
+    print()
+    print("=" * 60)
+    print("HOMEBASE - STORED GOOGLE EVENTS")
+    print("=" * 60)
+
+    for (
+        event_id,
+        event_date,
+        event_time,
         title,
         member,
         source,
-        source_id
-    FROM events
-    WHERE source = 'google'
-    ORDER BY date, time
-    """
-).fetchall()
+        source_id,
+        repeat_type,
+        repeat_until,
+    ) in google_events:
 
-connection.close()
+        print(
+            f"{event_id}: "
+            f"{event_date} "
+            f"{event_time} - "
+            f"{title} | "
+            f"Member: {member}"
+        )
 
-for row in rows:
-    print(row)
+    print()
+
+    print(
+        f"Total Google events: "
+        f"{len(google_events)}"
+    )
+
+
+if __name__ == "__main__":
+    main()

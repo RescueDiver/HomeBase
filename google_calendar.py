@@ -12,19 +12,22 @@ from googleapiclient.discovery import build
 from database import save_google_event
 
 
+BASE_DIR = Path(__file__).resolve().parent
+
+CONFIG_DIR = BASE_DIR / "config"
+PRIVATE_DIR = BASE_DIR / "private"
+
+PRIVATE_SETTINGS_FILE = CONFIG_DIR / "settings.local.json"
+EXAMPLE_SETTINGS_FILE = CONFIG_DIR / "settings.example.json"
+
+TOKEN_FILE = PRIVATE_DIR / "token.json"
+CREDENTIALS_FILE = PRIVATE_DIR / "credentials.json"
+
 SCOPES = [
     "https://www.googleapis.com/auth/calendar.readonly"
 ]
 
 LOCAL_TIMEZONE = ZoneInfo("America/New_York")
-
-PRIVATE_SETTINGS_FILE = Path(
-    "config/settings.local.json"
-)
-
-EXAMPLE_SETTINGS_FILE = Path(
-    "config/settings.example.json"
-)
 
 HOLIDAY_CALENDAR_ID = (
     "en.usa#holiday@group.v.calendar.google.com"
@@ -38,7 +41,6 @@ def load_settings():
     Fall back to the GitHub-safe example settings
     if the private file does not exist.
     """
-
     if PRIVATE_SETTINGS_FILE.exists():
         settings_file = PRIVATE_SETTINGS_FILE
     else:
@@ -54,15 +56,16 @@ def load_settings():
 def get_google_calendar_service():
     credentials = None
 
-    if Path("token.json").exists():
+    if TOKEN_FILE.exists():
         credentials = (
             Credentials.from_authorized_user_file(
-                "token.json",
+                TOKEN_FILE,
                 SCOPES
             )
         )
 
     if not credentials or not credentials.valid:
+
         if (
             credentials
             and credentials.expired
@@ -71,9 +74,15 @@ def get_google_calendar_service():
             credentials.refresh(Request())
 
         else:
+            if not CREDENTIALS_FILE.exists():
+                raise FileNotFoundError(
+                    f"Google credentials file not found: "
+                    f"{CREDENTIALS_FILE}"
+                )
+
             flow = (
                 InstalledAppFlow.from_client_secrets_file(
-                    "credentials.json",
+                    CREDENTIALS_FILE,
                     SCOPES
                 )
             )
@@ -82,14 +91,15 @@ def get_google_calendar_service():
                 port=0
             )
 
-        with open(
-            "token.json",
-            "w",
+        PRIVATE_DIR.mkdir(
+            parents=True,
+            exist_ok=True
+        )
+
+        TOKEN_FILE.write_text(
+            credentials.to_json(),
             encoding="utf-8"
-        ) as token_file:
-            token_file.write(
-                credentials.to_json()
-            )
+        )
 
     return build(
         "calendar",
@@ -123,6 +133,7 @@ def get_calendar_events(
     page_token = None
 
     while True:
+
         result = service.events().list(
             calendarId=calendar_id,
             timeMin=month_start.isoformat(),
@@ -154,12 +165,11 @@ def convert_google_event(event):
     start = event["start"]
 
     if "dateTime" in start:
-        event_datetime = (
-            datetime.fromisoformat(
-                start["dateTime"].replace(
-                    "Z",
-                    "+00:00"
-                )
+
+        event_datetime = datetime.fromisoformat(
+            start["dateTime"].replace(
+                "Z",
+                "+00:00"
             )
         )
 
@@ -238,7 +248,9 @@ def get_member_for_google_event(
     )
 
     if color_id in color_members:
-        return color_members[color_id]
+        return color_members[
+            color_id
+        ]
 
     creator_members = google_settings.get(
         "creator_members",
@@ -267,23 +279,25 @@ def sync_calendar(
 
     print()
     print("=" * 60)
+
     print(
         f"HOMEBASE - "
         f"{calendar_name.upper()} SYNC"
     )
+
     print("=" * 60)
 
     saved_count = 0
 
     for event in events:
-        converted = (
-            convert_google_event(
-                event
-            )
+
+        converted = convert_google_event(
+            event
         )
 
         if force_member:
             member = force_member
+
         else:
             member = (
                 get_member_for_google_event(
@@ -297,9 +311,7 @@ def sync_calendar(
             time=converted["time"],
             title=converted["title"],
             member=member,
-            source_id=converted[
-                "source_id"
-            ]
+            source_id=converted["source_id"]
         )
 
         saved_count += 1
@@ -315,10 +327,12 @@ def sync_calendar(
 
     print()
     print("=" * 60)
+
     print(
         f"Saved {saved_count} "
         f"{calendar_name} events."
     )
+
     print("=" * 60)
 
     return saved_count
@@ -370,10 +384,12 @@ def main():
 
     print()
     print("=" * 60)
+
     print(
         f"TOTAL SAVED: "
         f"{total_count} Google events."
     )
+
     print("=" * 60)
 
 

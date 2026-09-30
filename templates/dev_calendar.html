@@ -4,21 +4,33 @@
 <head>
     <meta charset="UTF-8">
 
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
     <title>HomeBase Dev Calendar</title>
 
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             margin: 0;
             padding: 20px;
+
             font-family: Arial, sans-serif;
+
             background: #0B1628;
             color: white;
         }
 
         .header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
+
             margin-bottom: 20px;
         }
 
@@ -28,35 +40,49 @@
 
         .nav {
             display: flex;
+
             gap: 10px;
         }
 
         .nav a {
             padding: 10px 16px;
+
+            border-radius: 5px;
+
             background: #1f2937;
             color: white;
+
             text-decoration: none;
-            border-radius: 5px;
+        }
+
+        .nav a:hover {
+            background: #374151;
         }
 
         .calendar {
             display: grid;
+
             grid-template-columns: repeat(7, 1fr);
-            border-left: 1px solid #374151;
+
             border-top: 1px solid #374151;
+            border-left: 1px solid #374151;
         }
 
         .day-name {
             padding: 10px;
+
             text-align: center;
             font-weight: bold;
+
             border-right: 1px solid #374151;
             border-bottom: 1px solid #374151;
         }
 
         .day {
             min-height: 150px;
+
             padding: 8px;
+
             border-right: 1px solid #374151;
             border-bottom: 1px solid #374151;
         }
@@ -66,21 +92,26 @@
         }
 
         .day-number {
+            margin-bottom: 8px;
+
             font-size: 18px;
             font-weight: bold;
-            margin-bottom: 8px;
         }
 
         .event {
             margin-bottom: 6px;
+
             padding: 6px;
-            background: #1f2937;
+
             border-left: 5px solid white;
             border-radius: 4px;
+
+            background: #1f2937;
         }
 
         .event-time {
             font-size: 12px;
+
             color: #d1d5db;
         }
 
@@ -90,11 +121,13 @@
 
         .event-member {
             font-size: 12px;
+
             color: #9ca3af;
         }
 
         .event-repeat {
             font-size: 11px;
+
             color: #6b7280;
         }
     </style>
@@ -102,90 +135,106 @@
 
 <body>
 
-<div class="header">
+    <div class="header">
 
-    <h1>DEV CALENDAR — {{ month_name }} {{ year }}</h1>
+        <h1>
+            DEV CALENDAR — {{ month_name }} {{ year }}
+        </h1>
 
-    <div class="nav">
-        <a href="/dev-calendar/{{ previous_year }}/{{ previous_month }}">
-            ← Previous
-        </a>
+        <div class="nav">
 
-        <a href="/dev-calendar/{{ next_year }}/{{ next_month }}">
-            Next →
-        </a>
+            <a
+                href="{{ url_for(
+                    'dev_calendar',
+                    year=previous_year,
+                    month=previous_month
+                ) }}"
+            >
+                ← Previous
+            </a>
+
+            <a
+                href="{{ url_for(
+                    'dev_calendar',
+                    year=next_year,
+                    month=next_month
+                ) }}"
+            >
+                Next →
+            </a>
+
+        </div>
+
     </div>
 
-</div>
+    <div class="calendar">
 
-<div class="calendar">
+        <div class="day-name">SUN</div>
+        <div class="day-name">MON</div>
+        <div class="day-name">TUE</div>
+        <div class="day-name">WED</div>
+        <div class="day-name">THU</div>
+        <div class="day-name">FRI</div>
+        <div class="day-name">SAT</div>
 
-    <div class="day-name">SUN</div>
-    <div class="day-name">MON</div>
-    <div class="day-name">TUE</div>
-    <div class="day-name">WED</div>
-    <div class="day-name">THU</div>
-    <div class="day-name">FRI</div>
-    <div class="day-name">SAT</div>
+        {% for week in month_weeks %}
 
-    {% for week in month_weeks %}
+            {% for day in week %}
 
-        {% for day in week %}
+                {% if day == 0 %}
 
-            {% if day == 0 %}
+                    <div class="day empty"></div>
 
-                <div class="day empty"></div>
+                {% else %}
 
-            {% else %}
+                    <div class="day">
 
-                <div class="day">
+                        <div class="day-number">
+                            {{ day }}
+                        </div>
 
-                    <div class="day-number">
-                        {{ day }}
+                        {% if day in events %}
+
+                            {% for event in events[day] %}
+
+                                <div
+                                    class="event"
+                                    style="border-left-color: {{ event['color'] }};"
+                                >
+
+                                    <div class="event-time">
+                                        {{ event["time"] }}
+                                    </div>
+
+                                    <div class="event-title">
+                                        {{ event["title"] }}
+                                    </div>
+
+                                    <div class="event-member">
+                                        {{ event["member"] }}
+                                    </div>
+
+                                    <div class="event-repeat">
+                                        {{ event["source"] }}
+                                        |
+                                        {{ event["repeat_type"] }}
+                                    </div>
+
+                                </div>
+
+                            {% endfor %}
+
+                        {% endif %}
+
                     </div>
 
-                    {% if day in events %}
+                {% endif %}
 
-                        {% for event in events[day] %}
-
-                            <div
-                                class="event"
-                                style="border-left-color: {{ event['color'] }};"
-                            >
-
-                                <div class="event-time">
-                                    {{ event["time"] }}
-                                </div>
-
-                                <div class="event-title">
-                                    {{ event["title"] }}
-                                </div>
-
-                                <div class="event-member">
-                                    {{ event["member"] }}
-                                </div>
-
-                                <div class="event-repeat">
-                                    {{ event["source"] }}
-                                    |
-                                    {{ event["repeat_type"] }}
-                                </div>
-
-                            </div>
-
-                        {% endfor %}
-
-                    {% endif %}
-
-                </div>
-
-            {% endif %}
+            {% endfor %}
 
         {% endfor %}
 
-    {% endfor %}
-
-</div>
+    </div>
 
 </body>
 

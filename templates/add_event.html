@@ -10,89 +10,143 @@
 
 <body>
 
-<h1>Add Event</h1>
+    <h1>Add Event</h1>
 
-<form method="post">
+    <form method="post">
 
-    <label for="date">Date:</label>
-    <input type="date" id="date" name="date" required>
+        <div>
+            <label for="date">Date:</label>
+            <input
+                type="date"
+                id="date"
+                name="date"
+                required
+            >
+        </div>
 
-    <br><br>
+        <br>
 
-    <label for="hour">Time:</label>
+        <div>
+            <label for="hour">Time:</label>
 
-    <select id="hour" name="hour">
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-        <option value="6">6</option>
-        <option value="7">7</option>
-        <option value="8">8</option>
-        <option value="9">9</option>
-        <option value="10">10</option>
-        <option value="11">11</option>
-        <option value="12">12</option>
-    </select>
+            <select id="hour" name="hour">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+                <option value="11">11</option>
+                <option value="12">12</option>
+            </select>
 
-    :
+            <span>:</span>
 
-    <select id="minute" name="minute">
-        <option value="00">00</option>
-        <option value="15">15</option>
-        <option value="30">30</option>
-        <option value="45">45</option>
-    </select>
+            <select id="minute" name="minute">
+                <option value="00">00</option>
+                <option value="15">15</option>
+                <option value="30">30</option>
+                <option value="45">45</option>
+            </select>
 
-    <select id="ampm" name="ampm">
-        <option value="AM">AM</option>
-        <option value="PM">PM</option>
-    </select>
+            <select id="ampm" name="ampm">
+                <option value="AM">AM</option>
+                <option value="PM">PM</option>
+            </select>
+        </div>
 
-    <br><br>
+        <br>
 
-    <label for="title">Event:</label>
-    <input type="text" id="title" name="title" required>
+        <div>
+            <label for="title">Event:</label>
+            <input
+                type="text"
+                id="title"
+                name="title"
+                required
+            >
+        </div>
 
-    <br><br>
+        <br>
 
-    <label for="member">Person:</label>
+        <div>
+            <label for="member">Person:</label>
 
-    <select id="member" name="member" required>
-        {% for member in members %}
-            <option value="{{ member['name'] }}">
-                {{ member['name'] }}
-            </option>
-        {% endfor %}
-    </select>
+            <select
+                id="member"
+                name="member"
+                required
+            >
+                {% for member in members %}
+                    <option value="{{ member['name'] }}">
+                        {{ member['name'] }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
 
-    <br><br>
+        <br>
 
-    <label for="repeat_type">Repeat:</label>
+        <div>
+            <label for="repeat_type">Repeat:</label>
 
-    <select id="repeat_type" name="repeat_type">
-        <option value="none">Does not repeat</option>
-        <option value="weekly">Every week</option>
-        <option value="biweekly">Every 2 weeks</option>
-        <option value="monthly">Every month</option>
-        <option value="yearly">Every year</option>
-    </select>
+            <select
+                id="repeat_type"
+                name="repeat_type"
+            >
+                <option value="none">
+                    Does not repeat
+                </option>
 
-    <br><br>
+                <option value="weekly">
+                    Every week
+                </option>
 
-    <label for="repeat_until">Repeat Until:</label>
-    <input type="date" id="repeat_until" name="repeat_until">
+                <option value="biweekly">
+                    Every 2 weeks
+                </option>
 
-    <br><br>
+                <option value="monthly">
+                    Every month
+                </option>
 
-    <button type="submit">Add Event</button>
+                <option value="yearly">
+                    Every year
+                </option>
+            </select>
+        </div>
 
-</form>
+        <br>
 
-<br>
+        <div>
+            <label for="repeat_until">
+                Repeat Until:
+            </label>
 
-<a href="/">Back to HomeBase</a>
+            <input
+                type="date"
+                id="repeat_until"
+                name="repeat_until"
+            >
+        </div>
+
+        <br>
+
+        <button type="submit">
+            Add Event
+        </button>
+
+    </form>
+
+    <br>
+
+    <a href="/">
+        Back to HomeBase
+    </a>
 
 </body>
 

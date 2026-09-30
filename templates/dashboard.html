@@ -3,9 +3,16 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta http-equiv="refresh" content="300">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        http-equiv="refresh"
+        content="300"
+    >
 
     <title>HomeBase</title>
 
@@ -17,16 +24,21 @@
         body {
             margin: 0;
             height: 100vh;
+
             font-family: Arial, sans-serif;
+
             background: #0B1628;
             color: white;
+
             overflow: hidden;
         }
 
         .dashboard {
             display: grid;
+
             grid-template-columns: 78% 22%;
             grid-template-rows: 1fr 130px;
+
             height: 100vh;
         }
 
@@ -35,24 +47,29 @@
            ========================= */
 
         .calendar {
-            padding: 18px;
-            border-right: 2px solid #374151;
-
             display: flex;
             flex-direction: column;
+
+            padding: 18px;
+
+            border-right: 2px solid #374151;
         }
 
         .calendar-header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
+
             gap: 20px;
+
             margin-bottom: 12px;
         }
 
         .calendar h1 {
             margin: 0;
+
             font-size: 38px;
+
             white-space: nowrap;
         }
 
@@ -64,42 +81,28 @@
             display: flex;
             align-items: center;
             justify-content: center;
+
             gap: 14px;
+
             flex: 1;
         }
 
         .member-key-item {
             display: flex;
             align-items: center;
+
             gap: 5px;
+
             font-size: 14px;
+
             white-space: nowrap;
         }
 
         .member-color {
             width: 12px;
             height: 12px;
+
             border-radius: 3px;
-        }
-
-        .member-color-1 {
-            background-color: #FF00FF;
-        }
-
-        .member-color-2 {
-            background-color: #81D8D0;
-        }
-
-        .member-color-3 {
-            background-color: #1B5935;
-        }
-
-        .member-color-4 {
-            background-color: #800000;
-        }
-
-        .member-color-5 {
-            background-color: #a855f7;
         }
 
         /* =========================
@@ -118,7 +121,9 @@
 
         #current-date {
             margin-top: 2px;
+
             font-size: 16px;
+
             color: #9ca3af;
         }
 
@@ -127,12 +132,13 @@
            ========================= */
 
         .calendar-grid {
-            flex: 1;
-
             display: grid;
+
             grid-template-columns: repeat(7, 1fr);
             grid-template-rows: 42px;
             grid-auto-rows: 1fr;
+
+            flex: 1;
 
             border-top: 1px solid #374151;
             border-left: 1px solid #374151;
@@ -143,8 +149,8 @@
             align-items: center;
             justify-content: center;
 
-            font-weight: bold;
             font-size: 18px;
+            font-weight: bold;
 
             background: #0B1628;
 
@@ -155,13 +161,13 @@
         .day {
             position: relative;
 
+            min-width: 0;
+            min-height: 0;
+
             padding: 8px;
 
             border-right: 1px solid #374151;
             border-bottom: 1px solid #374151;
-
-            min-width: 0;
-            min-height: 0;
         }
 
         .day-number {
@@ -203,10 +209,12 @@
             position: relative;
 
             margin-bottom: 5px;
+
             padding: 5px 52px 5px 7px;
 
             background: #1f2937;
-            border-left: 5px solid #FF00FF;
+
+            border-left: 5px solid #FFFFFF;
             border-radius: 4px;
 
             overflow: hidden;
@@ -215,13 +223,16 @@
         .event-time {
             font-size: 13px;
             font-weight: bold;
+
             color: #d1d5db;
         }
 
         .event-title {
             margin-top: 1px;
+
             font-size: 15px;
             font-weight: bold;
+
             color: white;
 
             white-space: nowrap;
@@ -235,6 +246,7 @@
 
         .edit-event-button {
             position: absolute;
+
             top: 4px;
             right: 28px;
 
@@ -247,6 +259,7 @@
             border-radius: 4px;
 
             color: #9ca3af;
+
             text-decoration: none;
 
             font-size: 15px;
@@ -260,8 +273,10 @@
 
         .delete-event-form {
             position: absolute;
+
             top: 4px;
             right: 4px;
+
             margin: 0;
         }
 
@@ -290,35 +305,12 @@
         }
 
         /* =========================
-           MEMBER EVENT COLORS
-           ========================= */
-
-        .member-event-eric {
-            border-left-color: #FF00FF;
-        }
-
-        .member-event-amber {
-            border-left-color: #81D8D0;
-        }
-
-        .member-event-jillian {
-            border-left-color: #1B5935;
-        }
-
-        .member-event-jachin {
-            border-left-color: #800000;
-        }
-
-        .member-event-family {
-            border-left-color: #a855f7;
-        }
-
-        /* =========================
            RIGHT SIDEBAR
            ========================= */
 
         .sidebar {
             display: grid;
+
             grid-template-rows: 35% 65%;
         }
 
@@ -333,6 +325,7 @@
 
         .sidebar h2 {
             margin: 0 0 15px 0;
+
             font-size: 28px;
         }
 
@@ -343,7 +336,9 @@
         .current-weather {
             display: flex;
             align-items: center;
+
             gap: 15px;
+
             margin-bottom: 5px;
         }
 
@@ -361,13 +356,16 @@
         }
 
         .weather-details {
-            color: #9ca3af;
             margin-bottom: 18px;
+
             font-size: 16px;
+
+            color: #9ca3af;
         }
 
         .forecast-row {
             display: grid;
+
             grid-template-columns: 65px 35px 1fr 75px;
 
             align-items: center;
@@ -391,12 +389,15 @@
 
         .forecast-temperature {
             text-align: right;
+
             white-space: nowrap;
         }
 
         .weather-source {
             margin-top: 14px;
+
             font-size: 11px;
+
             color: #6b7280;
         }
 
@@ -405,9 +406,10 @@
            ========================= */
 
         .shopping-placeholder {
-            color: #9ca3af;
             font-size: 20px;
             line-height: 1.4;
+
+            color: #9ca3af;
         }
 
         /* =========================
@@ -420,23 +422,28 @@
             padding: 14px 20px;
 
             border-top: 2px solid #374151;
+
             background: #0B1628;
         }
 
         .today-summary-title {
+            margin-bottom: 10px;
+
             font-size: 18px;
             font-weight: bold;
-            margin-bottom: 10px;
+
             color: #9ca3af;
         }
 
         .today-event {
             display: flex;
             align-items: center;
+
             gap: 18px;
 
-            font-size: 22px;
             margin-bottom: 6px;
+
+            font-size: 22px;
         }
 
         .today-event-time {
@@ -449,6 +456,7 @@
 
         .today-event-member {
             font-size: 25px;
+
             color: #9ca3af;
         }
 
@@ -461,6 +469,7 @@
             color: white;
 
             text-decoration: none;
+
             font-size: 13px;
         }
 
@@ -473,15 +482,16 @@
         }
 
         .today-delete-button {
+            padding: 4px 8px;
+
             border: none;
             border-radius: 5px;
-
-            padding: 4px 8px;
 
             background: #7f1d1d;
             color: white;
 
             cursor: pointer;
+
             font-size: 13px;
         }
 
@@ -491,320 +501,353 @@
 
         .no-events {
             font-size: 22px;
+
             color: #9ca3af;
         }
     </style>
-
 </head>
 
 <body>
 
-<div class="dashboard">
+    <div class="dashboard">
 
-    <!-- =========================
-         CALENDAR
-         ========================= -->
+        <!-- =========================
+             CALENDAR
+             ========================= -->
 
-    <section class="calendar">
+        <section class="calendar">
 
-        <div class="calendar-header">
+            <div class="calendar-header">
 
-            <h1>{{ month_name }} {{ year }}</h1>
+                <h1>
+                    {{ month_name }} {{ year }}
+                </h1>
 
-            <div class="member-key">
+                <div class="member-key">
 
-                {% for member in members %}
+                    {% for member in members %}
 
-                    <div class="member-key-item">
-                        <span class="member-color member-color-{{ loop.index }}"></span>
-                        <span>{{ member["name"] }}</span>
-                    </div>
+                        <div class="member-key-item">
 
-                {% endfor %}
+                            <span
+                                class="member-color"
+                                style="background-color: {{ member['color'] }};"
+                            ></span>
 
-            </div>
-
-            <div class="clock-area">
-                <div id="clock">--:--</div>
-                <div id="current-date"></div>
-            </div>
-
-        </div>
-
-        <div class="calendar-grid">
-
-            <div class="day-name">SUN</div>
-            <div class="day-name">MON</div>
-            <div class="day-name">TUE</div>
-            <div class="day-name">WED</div>
-            <div class="day-name">THU</div>
-            <div class="day-name">FRI</div>
-            <div class="day-name">SAT</div>
-
-            {% for week in month_weeks %}
-
-                {% for day in week %}
-
-                    {% if day == 0 %}
-
-                        <div class="day empty-day"></div>
-
-                    {% else %}
-
-                        <div class="day {% if day == today %}today{% endif %}">
-
-                            <span class="day-number">
-                                {{ day }}
+                            <span>
+                                {{ member["name"] }}
                             </span>
-
-                            {% if day in events %}
-
-                                <div class="day-events">
-
-                                    {% for event in events[day] %}
-
-                                        <div class="calendar-event member-event-{{ event['member']|lower|replace(' ', '-') }}">
-
-                                            <div class="event-time">
-                                                {{ event["time"] }}
-                                            </div>
-
-                                            <div class="event-title">
-                                                {{ event["title"] }}
-                                            </div>
-
-                                            {% if event["source"] == "local" %}
-
-                                                <a
-                                                    href="/edit-event/{{ event['id'] }}"
-                                                    class="edit-event-button"
-                                                    title="Edit event"
-                                                >
-                                                    ✎
-                                                </a>
-
-                                                <form
-                                                    class="delete-event-form"
-                                                    method="post"
-                                                    action="/delete-event/{{ event['id'] }}"
-                                                    onsubmit="return confirm('Delete this event?');"
-                                                >
-                                                    <button
-                                                        class="delete-event-button"
-                                                        type="submit"
-                                                        title="Delete event"
-                                                    >
-                                                        ×
-                                                    </button>
-                                                </form>
-
-                                            {% endif %}
-
-                                        </div>
-
-                                    {% endfor %}
-
-                                </div>
-
-                            {% endif %}
 
                         </div>
 
-                    {% endif %}
+                    {% endfor %}
+
+                </div>
+
+                <div class="clock-area">
+
+                    <div id="clock">
+                        --:--
+                    </div>
+
+                    <div id="current-date"></div>
+
+                </div>
+
+            </div>
+
+            <div class="calendar-grid">
+
+                <div class="day-name">SUN</div>
+                <div class="day-name">MON</div>
+                <div class="day-name">TUE</div>
+                <div class="day-name">WED</div>
+                <div class="day-name">THU</div>
+                <div class="day-name">FRI</div>
+                <div class="day-name">SAT</div>
+
+                {% for week in month_weeks %}
+
+                    {% for day in week %}
+
+                        {% if day == 0 %}
+
+                            <div class="day empty-day"></div>
+
+                        {% else %}
+
+                            <div
+                                class="day {% if day == today %}today{% endif %}"
+                            >
+
+                                <span class="day-number">
+                                    {{ day }}
+                                </span>
+
+                                {% if day in events %}
+
+                                    <div class="day-events">
+
+                                        {% for event in events[day] %}
+
+                                            <div
+                                                class="calendar-event"
+                                                style="border-left-color: {{ event['color'] }};"
+                                            >
+
+                                                <div class="event-time">
+                                                    {{ event["time"] }}
+                                                </div>
+
+                                                <div class="event-title">
+                                                    {{ event["title"] }}
+                                                </div>
+
+                                                {% if event["source"] == "local" %}
+
+                                                    <a
+                                                        href="{{ url_for('edit_event_page', event_id=event['id']) }}"
+                                                        class="edit-event-button"
+                                                        title="Edit event"
+                                                    >
+                                                        ✎
+                                                    </a>
+
+                                                    <form
+                                                        class="delete-event-form"
+                                                        method="post"
+                                                        action="{{ url_for('delete_event_page', event_id=event['id']) }}"
+                                                        onsubmit="return confirm('Delete this event?');"
+                                                    >
+
+                                                        <button
+                                                            class="delete-event-button"
+                                                            type="submit"
+                                                            title="Delete event"
+                                                        >
+                                                            ×
+                                                        </button>
+
+                                                    </form>
+
+                                                {% endif %}
+
+                                            </div>
+
+                                        {% endfor %}
+
+                                    </div>
+
+                                {% endif %}
+
+                            </div>
+
+                        {% endif %}
+
+                    {% endfor %}
 
                 {% endfor %}
 
-            {% endfor %}
-
-        </div>
-
-    </section>
-
-    <!-- =========================
-         RIGHT SIDEBAR
-         ========================= -->
-
-    <aside class="sidebar">
-
-        <!-- WEATHER -->
-
-        <section class="weather">
-
-            <h2>Weather</h2>
-
-            <div class="current-weather">
-
-                <div class="current-weather-icon">
-                    {{ weather["icon"] }}
-                </div>
-
-                <div>
-
-                    <div class="current-temperature">
-                        {{ weather["temperature"] }}°F
-                    </div>
-
-                    <div class="current-description">
-                        {{ weather["description"] }}
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="weather-details">
-
-                {{ weather["location"]["name"] }},
-                {{ weather["location"]["state"] }}
-
-                &nbsp;•&nbsp;
-
-                Clouds {{ weather["cloud_cover"] }}%
-
-            </div>
-
-            {% for day in weather["forecast"] %}
-
-                <div class="forecast-row">
-
-                    <div class="forecast-day">
-                        {{ day["day"] }}
-                    </div>
-
-                    <div class="forecast-icon">
-                        {{ day["icon"] }}
-                    </div>
-
-                    <div class="forecast-description">
-                        {{ day["description"] }}
-                    </div>
-
-                    <div class="forecast-temperature">
-                        {{ day["high"] }}° / {{ day["low"] }}°
-                    </div>
-
-                </div>
-
-            {% endfor %}
-
-            <div class="weather-source">
-                Weather data: Open-Meteo
             </div>
 
         </section>
 
         <!-- =========================
-             SHOPPING
+             RIGHT SIDEBAR
              ========================= -->
 
-        <section class="shopping">
+        <aside class="sidebar">
 
-            <h2>Shopping List</h2>
+            <!-- WEATHER -->
 
-            <div class="shopping-placeholder">
-                Milk<br>
-                Bread<br>
-                Eggs
-            </div>
+            <section class="weather">
 
-        </section>
+                <h2>
+                    Weather
+                </h2>
 
-    </aside>
+                <div class="current-weather">
 
-    <!-- =========================
-         BOTTOM BAR
-         ========================= -->
+                    <div class="current-weather-icon">
+                        {{ weather["icon"] }}
+                    </div>
 
-    <footer class="bottom-bar">
+                    <div>
 
-        <div class="today-summary">
+                        <div class="current-temperature">
+                            {{ weather["temperature"] }}°F
+                        </div>
 
-            <div class="today-summary-title">
-                TODAY
-            </div>
+                        <div class="current-description">
+                            {{ weather["description"] }}
+                        </div>
 
-            {% if today in events %}
+                    </div>
 
-                {% for event in events[today] %}
+                </div>
 
-                    <div class="today-event">
+                <div class="weather-details">
 
-                        <span class="today-event-time">
-                            {{ event["time"] }}
-                        </span>
+                    {{ weather["location"]["name"] }},
+                    {{ weather["location"]["state"] }}
 
-                        <span class="today-event-title">
-                            {{ event["title"] }}
-                        </span>
+                    &nbsp;•&nbsp;
 
-                        <span class="today-event-member">
-                            {{ event["member"] }}
-                        </span>
+                    Clouds {{ weather["cloud_cover"] }}%
 
-                        {% if event["source"] == "local" %}
+                </div>
 
-                            <a
-                                href="/edit-event/{{ event['id'] }}"
-                                class="today-edit-button"
-                            >
-                                Edit
-                            </a>
+                {% for day in weather["forecast"] %}
 
-                            <form
-                                class="today-delete-form"
-                                method="post"
-                                action="/delete-event/{{ event['id'] }}"
-                                onsubmit="return confirm('Delete this event?');"
-                            >
-                                <button
-                                    class="today-delete-button"
-                                    type="submit"
-                                >
-                                    Delete
-                                </button>
-                            </form>
+                    <div class="forecast-row">
 
-                        {% endif %}
+                        <div class="forecast-day">
+                            {{ day["day"] }}
+                        </div>
+
+                        <div class="forecast-icon">
+                            {{ day["icon"] }}
+                        </div>
+
+                        <div class="forecast-description">
+                            {{ day["description"] }}
+                        </div>
+
+                        <div class="forecast-temperature">
+                            {{ day["high"] }}° /
+                            {{ day["low"] }}°
+                        </div>
 
                     </div>
 
                 {% endfor %}
 
-            {% else %}
-
-                <div class="no-events">
-                    Nothing scheduled today
+                <div class="weather-source">
+                    Weather data: Open-Meteo
                 </div>
 
-            {% endif %}
+            </section>
 
-        </div>
+            <!-- =========================
+                 SHOPPING
+                 ========================= -->
 
-    </footer>
+            <section class="shopping">
 
-</div>
+                <h2>
+                    Shopping List
+                </h2>
 
-<script>
-    function updateClock() {
-        const now = new Date();
+                <div class="shopping-placeholder">
+                    Milk<br>
+                    Bread<br>
+                    Eggs
+                </div>
 
-        document.getElementById("clock").textContent =
-            now.toLocaleTimeString([], {
-                hour: "numeric",
-                minute: "2-digit"
-            });
+            </section>
 
-        document.getElementById("current-date").textContent =
-            now.toLocaleDateString([], {
-                weekday: "long",
-                month: "long",
-                day: "numeric"
-            });
-    }
+        </aside>
 
-    updateClock();
-    setInterval(updateClock, 1000);
-</script>
+        <!-- =========================
+             BOTTOM BAR
+             ========================= -->
+
+        <footer class="bottom-bar">
+
+            <div class="today-summary">
+
+                <div class="today-summary-title">
+                    TODAY
+                </div>
+
+                {% if today in events %}
+
+                    {% for event in events[today] %}
+
+                        <div class="today-event">
+
+                            <span class="today-event-time">
+                                {{ event["time"] }}
+                            </span>
+
+                            <span class="today-event-title">
+                                {{ event["title"] }}
+                            </span>
+
+                            <span class="today-event-member">
+                                {{ event["member"] }}
+                            </span>
+
+                            {% if event["source"] == "local" %}
+
+                                <a
+                                    href="{{ url_for('edit_event_page', event_id=event['id']) }}"
+                                    class="today-edit-button"
+                                >
+                                    Edit
+                                </a>
+
+                                <form
+                                    class="today-delete-form"
+                                    method="post"
+                                    action="{{ url_for('delete_event_page', event_id=event['id']) }}"
+                                    onsubmit="return confirm('Delete this event?');"
+                                >
+
+                                    <button
+                                        class="today-delete-button"
+                                        type="submit"
+                                    >
+                                        Delete
+                                    </button>
+
+                                </form>
+
+                            {% endif %}
+
+                        </div>
+
+                    {% endfor %}
+
+                {% else %}
+
+                    <div class="no-events">
+                        Nothing scheduled today
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+        </footer>
+
+    </div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+
+            document.getElementById("clock").textContent =
+                now.toLocaleTimeString([], {
+                    hour: "numeric",
+                    minute: "2-digit"
+                });
+
+            document.getElementById("current-date").textContent =
+                now.toLocaleDateString([], {
+                    weekday: "long",
+                    month: "long",
+                    day: "numeric"
+                });
+        }
+
+        updateClock();
+
+        setInterval(
+            updateClock,
+            1000
+        );
+    </script>
 
 </body>
 

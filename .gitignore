@@ -1,17 +1,32 @@
-# Google credentials
-credentials.json
-token.json
+# Private credentials
+private/
+
+# Private local settings
+config/settings.local.json
 
 # Local database
 data/homebase.db
 
-# Local private settings
-config/settings.local.json
-
-# Python
+# Python virtual environments
 .venv/
-__pycache__/
-*.pyc
+venv/
 
-# IDE
+# Python cache / compiled files
+__pycache__/
+*.py[cod]
+
+# PyCharm / JetBrains
 .idea/
+
+# Test / tool caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.log

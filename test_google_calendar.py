@@ -1,83 +1,74 @@
 from datetime import datetime, timezone
 
-from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
+from google_calendar import (
+    get_google_calendar_service,
+    load_settings,
+)
 
 
-SCOPES = [
-    "https://www.googleapis.com/auth/calendar.readonly"
-]
-
-
-def get_credentials():
-    credentials = None
-
-    try:
-        credentials = Credentials.from_authorized_user_file(
-            "token.json",
-            SCOPES
-        )
-    except FileNotFoundError:
-        pass
-
-    if not credentials or not credentials.valid:
-        if (
-            credentials
-            and credentials.expired
-            and credentials.refresh_token
-        ):
-            credentials.refresh(Request())
-
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                "credentials.json",
-                SCOPES
-            )
-
-            credentials = flow.run_local_server(port=0)
-
-        with open("token.json", "w") as token_file:
-            token_file.write(credentials.to_json())
-
-    return credentials
-
-
-def main():
-    credentials = get_credentials()
-
-    service = build(
-        "calendar",
-        "v3",
-        credentials=credentials
+def print_visible_calendars(service):
+    """
+    Print every Google Calendar Marvin can currently access.
+    """
+    calendar_list = (
+        service.calendarList()
+        .list()
+        .execute()
     )
-    calendar_list = service.calendarList().list().execute()
 
     print()
     print("=" * 60)
     print("CALENDARS MARVIN CAN SEE")
     print("=" * 60)
 
-    for google_calendar in calendar_list.get("items", []):
-        print(
-            google_calendar.get("summary"),
-            "-",
-            google_calendar.get("id")
+    calendars = calendar_list.get(
+        "items",
+        []
+    )
+
+    if not calendars:
+        print("No calendars found.")
+        return
+
+    for google_calendar in calendars:
+        name = google_calendar.get(
+            "summary",
+            "(No name)"
         )
 
-    print()
-    now = datetime.now(timezone.utc).isoformat()
+        calendar_id = google_calendar.get(
+            "id",
+            "(No ID)"
+        )
+
+        print(
+            f"{name} - {calendar_id}"
+        )
+
+
+def print_upcoming_family_events(
+    service,
+    family_calendar_id
+):
+    """
+    Print the next ten events from the Family calendar.
+    """
+    now = datetime.now(
+        timezone.utc
+    ).isoformat()
 
     result = service.events().list(
-        calendarId="family-calendar-id",
+        calendarId=family_calendar_id,
         timeMin=now,
         maxResults=10,
         singleEvents=True,
         orderBy="startTime"
     ).execute()
 
-    events = result.get("items", [])
+    events = result.get(
+        "items",
+        []
+    )
 
     print()
     print("=" * 60)
@@ -91,10 +82,53 @@ def main():
     for event in events:
         start = event["start"].get(
             "dateTime",
-            event["start"].get("date")
+            event["start"].get(
+                "date"
+            )
         )
 
-        print(start, "-", event.get("summary", "(No title)"))
+        title = event.get(
+            "summary",
+            "(No title)"
+        )
+
+        print(
+            f"{start} - {title}"
+        )
+
+
+def main():
+    settings = load_settings()
+
+    google_settings = settings.get(
+        "google_calendar",
+        {}
+    )
+
+    family_calendar_id = (
+        google_settings.get(
+            "family_calendar_id"
+        )
+    )
+
+    if not family_calendar_id:
+        raise ValueError(
+            "Missing google_calendar.family_calendar_id "
+            "in config/settings.local.json"
+        )
+
+    service = (
+        get_google_calendar_service()
+    )
+
+    print_visible_calendars(
+        service
+    )
+
+    print_upcoming_family_events(
+        service,
+        family_calendar_id
+    )
 
 
 if __name__ == "__main__":

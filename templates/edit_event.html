@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Edit Event - HomeBase</title>
+</head>
+
+<body>
+
+    <h1>Edit Event</h1>
+
+    <form method="post">
+
+        <div>
+            <label for="date">Date:</label>
+
+            <input
+                type="date"
+                id="date"
+                name="date"
+                value="{{ event['date'] }}"
+                required
+            >
+        </div>
+
+        <br>
+
+        <div>
+            <label for="hour">Time:</label>
+
+            <select id="hour" name="hour">
+                {% for hour in range(1, 13) %}
+                    <option
+                        value="{{ hour }}"
+                        {% if hour == selected_hour %}selected{% endif %}
+                    >
+                        {{ hour }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <span>:</span>
+
+            <select id="minute" name="minute">
+                {% for minute in ["00", "15", "30", "45"] %}
+                    <option
+                        value="{{ minute }}"
+                        {% if minute == selected_minute %}selected{% endif %}
+                    >
+                        {{ minute }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <select id="ampm" name="ampm">
+                <option
+                    value="AM"
+                    {% if selected_ampm == "AM" %}selected{% endif %}
+                >
+                    AM
+                </option>
+
+                <option
+                    value="PM"
+                    {% if selected_ampm == "PM" %}selected{% endif %}
+                >
+                    PM
+                </option>
+            </select>
+        </div>
+
+        <br>
+
+        <div>
+            <label for="title">Event:</label>
+
+            <input
+                type="text"
+                id="title"
+                name="title"
+                value="{{ event['title'] }}"
+                required
+            >
+        </div>
+
+        <br>
+
+        <div>
+            <label for="member">Person:</label>
+
+            <select
+                id="member"
+                name="member"
+                required
+            >
+                {% for member in members %}
+
+                    <option
+                        value="{{ member['name'] }}"
+                        {% if member['name'] == event['member'] %}selected{% endif %}
+                    >
+                        {{ member['name'] }}
+                    </option>
+
+                {% endfor %}
+            </select>
+        </div>
+
+        <br>
+
+        <div>
+            <label for="repeat_type">Repeat:</label>
+
+            <select
+                id="repeat_type"
+                name="repeat_type"
+            >
+                <option
+                    value="none"
+                    {% if event['repeat_type'] == "none" %}selected{% endif %}
+                >
+                    Does not repeat
+                </option>
+
+                <option
+                    value="weekly"
+                    {% if event['repeat_type'] == "weekly" %}selected{% endif %}
+                >
+                    Every week
+                </option>
+
+                <option
+                    value="biweekly"
+                    {% if event['repeat_type'] == "biweekly" %}selected{% endif %}
+                >
+                    Every 2 weeks
+                </option>
+
+                <option
+                    value="monthly"
+                    {% if event['repeat_type'] == "monthly" %}selected{% endif %}
+                >
+                    Every month
+                </option>
+
+                <option
+                    value="yearly"
+                    {% if event['repeat_type'] == "yearly" %}selected{% endif %}
+                >
+                    Every year
+                </option>
+            </select>
+        </div>
+
+        <br>
+
+        <div>
+            <label for="repeat_until">
+                Repeat Until:
+            </label>
+
+            <input
+                type="date"
+                id="repeat_until"
+                name="repeat_until"
+                value="{{ event['repeat_until'] or '' }}"
+            >
+        </div>
+
+        <br>
+
+        <button type="submit">
+            Save Changes
+        </button>
+
+    </form>
+
+    <br>
+
+    <a href="/">
+        Back to HomeBase
+    </a>
+
+</body>
+
+</html>

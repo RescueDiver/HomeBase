@@ -31,5 +31,17 @@
         "color": "#a855f7"
       }
     ]
+  },
+  "google_calendar": {
+    "family_calendar_id": "your-family-calendar-id",
+    "creator_members": {
+      "person1@example.com": "Person 1",
+      "person2@example.com": "Person 2"
+    },
+    "color_members": {
+      "10": "Person 3",
+      "11": "Family",
+      "5": "Family"
+    }
   }
 }
