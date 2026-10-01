@@ -9,7 +9,13 @@ from threading import Timer
 
 import requests
 
-from app import app
+from app import (
+    app,
+    get_marvin_shopping_list,
+    get_weather,
+)
+
+from refresh_manager import refresh_manager
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -214,51 +220,83 @@ def start_home_assistant(
     return False
 
 
-def sync_google_calendar():
-    """
-    Run the Google Calendar synchronization.
+def refresh_calendar():
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(GOOGLE_SYNC_FILE),
+        ],
+        cwd=BASE_DIR,
+        check=False,
+    )
 
-    Marvin continues even if the sync fails.
-    """
-    print()
-    print("=" * 60)
-    print("MARVIN - GOOGLE CALENDAR")
-    print("=" * 60)
-
-    try:
-        result = subprocess.run(
-            [
-                sys.executable,
-                str(GOOGLE_SYNC_FILE),
-            ],
-            cwd=BASE_DIR,
-            check=False
+    if result.returncode != 0:
+        raise RuntimeError(
+            "Google Calendar sync failed."
         )
 
-        if result.returncode == 0:
-            print(
-                "Google Calendar sync complete."
-            )
-        else:
-            print(
-                "Google Calendar sync failed."
-            )
+    return True
 
-            print(
-                "Marvin will use the events "
-                "already stored locally."
-            )
 
-    except Exception as error:
-        print(
-            "Google Calendar sync error:"
+def refresh_shopping():
+    shopping = get_marvin_shopping_list()
+
+    if not shopping["live"]:
+        raise RuntimeError(
+            "Home Assistant shopping list "
+            "is unavailable."
         )
 
-        print(error)
+    return shopping
 
-        print(
-            "Marvin will continue."
-        )
+
+def refresh_weather():
+    settings = load_settings()
+
+    weather_settings = settings[
+        "weather"
+    ]
+
+    return get_weather(
+        weather_settings["location"],
+        weather_settings["forecast_days"],
+    )
+
+
+def configure_refresh_system(
+    settings
+):
+    refresh_settings = settings.get(
+        "refresh",
+        {}
+    )
+
+    refresh_manager.register(
+        "Shopping List",
+        refresh_settings.get(
+            "shopping",
+            30
+        ),
+        refresh_shopping,
+    )
+
+    refresh_manager.register(
+        "Calendar",
+        refresh_settings.get(
+            "calendar",
+            60
+        ),
+        refresh_calendar,
+    )
+
+    refresh_manager.register(
+        "Weather",
+        refresh_settings.get(
+            "weather",
+            600
+        ),
+        refresh_weather,
+    )
 
 
 def open_dashboard():
@@ -282,7 +320,11 @@ def start_marvin():
         settings
     )
 
-    sync_google_calendar()
+    configure_refresh_system(
+        settings
+    )
+
+    refresh_manager.start()
 
     print()
     print("=" * 60)
