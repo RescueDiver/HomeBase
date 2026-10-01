@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -405,11 +406,32 @@
            SHOPPING
            ========================= */
 
-        .shopping-placeholder {
+        .shopping-list {
+            margin: 0;
+            padding-left: 24px;
+
+            font-size: 20px;
+            line-height: 1.45;
+        }
+
+        .shopping-list li {
+            margin-bottom: 4px;
+        }
+
+        .shopping-empty,
+        .shopping-unavailable {
             font-size: 20px;
             line-height: 1.4;
 
             color: #9ca3af;
+        }
+
+        .shopping-status {
+            margin-top: 12px;
+
+            font-size: 12px;
+
+            color: #6b7280;
         }
 
         /* =========================
@@ -738,11 +760,41 @@
                     Shopping List
                 </h2>
 
-                <div class="shopping-placeholder">
-                    Milk<br>
-                    Bread<br>
-                    Eggs
-                </div>
+                {% if shopping["items"] %}
+
+                    <ul class="shopping-list">
+
+                        {% for item in shopping["items"] %}
+
+                            <li>
+                                {{ item["summary"] }}
+                            </li>
+
+                        {% endfor %}
+
+                    </ul>
+
+                    {% if not shopping["live"] %}
+
+                        <div class="shopping-status">
+                            Home Assistant offline — showing last saved list.
+                        </div>
+
+                    {% endif %}
+
+                {% elif shopping["live"] %}
+
+                    <div class="shopping-empty">
+                        Shopping list is empty.
+                    </div>
+
+                {% else %}
+
+                    <div class="shopping-unavailable">
+                        Shopping list unavailable.
+                    </div>
+
+                {% endif %}
 
             </section>
 

@@ -16,22 +16,37 @@ from database import (
     update_event,
 )
 
+from home_assistant import get_shopping_list
+
 
 app = Flask(__name__)
 
 
-PRIVATE_SETTINGS_FILE = Path("config/settings.local.json")
-EXAMPLE_SETTINGS_FILE = Path("config/settings.example.json")
+BASE_DIR = Path(__file__).resolve().parent
+
+CONFIG_DIR = BASE_DIR / "config"
+DATA_DIR = BASE_DIR / "data"
+
+PRIVATE_SETTINGS_FILE = (
+    CONFIG_DIR / "settings.local.json"
+)
+
+EXAMPLE_SETTINGS_FILE = (
+    CONFIG_DIR / "settings.example.json"
+)
+
+SHOPPING_CACHE_FILE = (
+    DATA_DIR / "shopping_list_cache.json"
+)
 
 
 def load_settings():
     """
     Load private local settings when available.
 
-    If the private settings file does not exist, fall back to the
-    GitHub-safe example settings file.
+    Fall back to the GitHub-safe example settings
+    when private settings are unavailable.
     """
-
     if PRIVATE_SETTINGS_FILE.exists():
         settings_file = PRIVATE_SETTINGS_FILE
     else:
@@ -45,7 +60,10 @@ def load_settings():
 
 
 def get_coordinates(location):
-    url = "https://geocoding-api.open-meteo.com/v1/search"
+    url = (
+        "https://geocoding-api.open-meteo.com/"
+        "v1/search"
+    )
 
     params = {
         "name": location,
@@ -66,14 +84,18 @@ def get_coordinates(location):
 
     if not data.get("results"):
         raise ValueError(
-            f"Could not find weather location: {location}"
+            f"Could not find weather location: "
+            f"{location}"
         )
 
     result = data["results"][0]
 
     return {
         "name": result["name"],
-        "state": result.get("admin1", ""),
+        "state": result.get(
+            "admin1",
+            ""
+        ),
         "latitude": result["latitude"],
         "longitude": result["longitude"],
         "timezone": result["timezone"],
@@ -93,35 +115,75 @@ def weather_description(code):
     if code in (45, 48):
         return "Foggy", "🌫️"
 
-    if code in (51, 53, 55, 56, 57):
+    if code in (
+        51,
+        53,
+        55,
+        56,
+        57,
+    ):
         return "Drizzle", "🌦️"
 
-    if code in (61, 63, 65, 66, 67):
+    if code in (
+        61,
+        63,
+        65,
+        66,
+        67,
+    ):
         return "Rain", "🌧️"
 
-    if code in (71, 73, 75, 77):
+    if code in (
+        71,
+        73,
+        75,
+        77,
+    ):
         return "Snow", "🌨️"
 
-    if code in (80, 81, 82):
+    if code in (
+        80,
+        81,
+        82,
+    ):
         return "Showers", "🌧️"
 
-    if code in (85, 86):
+    if code in (
+        85,
+        86,
+    ):
         return "Snow Showers", "🌨️"
 
-    if code in (95, 96, 99):
+    if code in (
+        95,
+        96,
+        99,
+    ):
         return "Thunderstorms", "⛈️"
 
     return "Unknown", "🌡️"
 
 
-def get_weather(location, forecast_days=5):
-    coordinates = get_coordinates(location)
+def get_weather(
+    location,
+    forecast_days=5
+):
+    coordinates = get_coordinates(
+        location
+    )
 
-    url = "https://api.open-meteo.com/v1/forecast"
+    url = (
+        "https://api.open-meteo.com/"
+        "v1/forecast"
+    )
 
     params = {
-        "latitude": coordinates["latitude"],
-        "longitude": coordinates["longitude"],
+        "latitude": coordinates[
+            "latitude"
+        ],
+        "longitude": coordinates[
+            "longitude"
+        ],
         "current": (
             "temperature_2m,"
             "weather_code,"
@@ -134,7 +196,9 @@ def get_weather(location, forecast_days=5):
             "precipitation_probability_max"
         ),
         "temperature_unit": "fahrenheit",
-        "timezone": coordinates["timezone"],
+        "timezone": coordinates[
+            "timezone"
+        ],
         "forecast_days": forecast_days,
     }
 
@@ -150,7 +214,11 @@ def get_weather(location, forecast_days=5):
 
     current_description, current_icon = (
         weather_description(
-            data["current"]["weather_code"]
+            data[
+                "current"
+            ][
+                "weather_code"
+            ]
         )
     )
 
@@ -164,16 +232,24 @@ def get_weather(location, forecast_days=5):
             "%Y-%m-%d",
         )
 
-        description, icon = weather_description(
-            data["daily"]["weather_code"][index]
+        description, icon = (
+            weather_description(
+                data[
+                    "daily"
+                ][
+                    "weather_code"
+                ][index]
+            )
         )
 
         if index == 0:
             day_name = "TODAY"
         else:
-            day_name = date.strftime(
-                "%a"
-            ).upper()
+            day_name = (
+                date.strftime(
+                    "%a"
+                ).upper()
+            )
 
         forecast.append(
             {
@@ -205,17 +281,122 @@ def get_weather(location, forecast_days=5):
     return {
         "location": coordinates,
         "temperature": round(
-            data["current"]["temperature_2m"]
+            data[
+                "current"
+            ][
+                "temperature_2m"
+            ]
         ),
         "cloud_cover": data[
             "current"
         ][
             "cloud_cover"
         ],
-        "description": current_description,
+        "description": (
+            current_description
+        ),
         "icon": current_icon,
         "forecast": forecast,
     }
+
+
+def save_shopping_cache(items):
+    """
+    Save the most recent successful shopping list.
+
+    This allows Marvin to keep displaying the last
+    known list if Home Assistant is temporarily offline.
+    """
+    DATA_DIR.mkdir(
+        parents=True,
+        exist_ok=True
+    )
+
+    cache_data = {
+        "updated": (
+            datetime.now().isoformat()
+        ),
+        "items": items,
+    }
+
+    SHOPPING_CACHE_FILE.write_text(
+        json.dumps(
+            cache_data,
+            indent=2
+        ),
+        encoding="utf-8"
+    )
+
+
+def load_shopping_cache():
+    """
+    Load the last successful shopping list.
+    """
+    if not SHOPPING_CACHE_FILE.exists():
+        return [], None
+
+    try:
+        cache_data = json.loads(
+            SHOPPING_CACHE_FILE.read_text(
+                encoding="utf-8"
+            )
+        )
+
+        return (
+            cache_data.get(
+                "items",
+                []
+            ),
+            cache_data.get(
+                "updated"
+            ),
+        )
+
+    except (
+        OSError,
+        json.JSONDecodeError,
+    ):
+        return [], None
+
+
+def get_marvin_shopping_list():
+    """
+    Get the live Alexa shopping list.
+
+    If Home Assistant is unavailable, return the
+    most recently cached list instead of crashing
+    Marvin.
+    """
+    try:
+        items = get_shopping_list()
+
+        save_shopping_cache(
+            items
+        )
+
+        return {
+            "items": items,
+            "live": True,
+            "updated": (
+                datetime.now().isoformat()
+            ),
+        }
+
+    except Exception as error:
+        print(
+            "Home Assistant shopping list "
+            f"unavailable: {error}"
+        )
+
+        cached_items, updated = (
+            load_shopping_cache()
+        )
+
+        return {
+            "items": cached_items,
+            "live": False,
+            "updated": updated,
+        }
 
 
 def get_event_occurrences(
@@ -245,7 +426,9 @@ def get_event_occurrences(
             start.year == year
             and start.month == month
         ):
-            occurrences.append(start)
+            occurrences.append(
+                start
+            )
 
         return occurrences
 
@@ -268,17 +451,28 @@ def get_event_occurrences(
             current.year == year
             and current.month == month
         ):
-            occurrences.append(current)
+            occurrences.append(
+                current
+            )
 
         if repeat_type == "weekly":
-            current += timedelta(days=7)
+            current += timedelta(
+                days=7
+            )
 
         elif repeat_type == "biweekly":
-            current += timedelta(days=14)
+            current += timedelta(
+                days=14
+            )
 
         elif repeat_type == "monthly":
-            next_month = current.month + 1
-            next_year = current.year
+            next_month = (
+                current.month + 1
+            )
+
+            next_year = (
+                current.year
+            )
 
             if next_month == 13:
                 next_month = 1
@@ -286,10 +480,13 @@ def get_event_occurrences(
 
             while True:
                 try:
-                    current = current.replace(
-                        year=next_year,
-                        month=next_month,
+                    current = (
+                        current.replace(
+                            year=next_year,
+                            month=next_month,
+                        )
                     )
+
                     break
 
                 except ValueError:
@@ -300,13 +497,18 @@ def get_event_occurrences(
                         next_year += 1
 
         elif repeat_type == "yearly":
-            next_year = current.year + 1
+            next_year = (
+                current.year + 1
+            )
 
             while True:
                 try:
-                    current = current.replace(
-                        year=next_year
+                    current = (
+                        current.replace(
+                            year=next_year
+                        )
                     )
+
                     break
 
                 except ValueError:
@@ -325,10 +527,9 @@ def build_calendar_events(
     month,
 ):
     """
-    Convert database rows into the dictionary used
-    by the calendar templates.
+    Convert database rows into the dictionary
+    used by the calendar templates.
     """
-
     events = {}
 
     for (
@@ -343,16 +544,22 @@ def build_calendar_events(
         repeat_until,
     ) in database_events:
 
-        occurrence_dates = get_event_occurrences(
-            event_date,
-            repeat_type or "none",
-            repeat_until,
-            year,
-            month,
+        occurrence_dates = (
+            get_event_occurrences(
+                event_date,
+                repeat_type or "none",
+                repeat_until,
+                year,
+                month,
+            )
         )
 
-        for occurrence_date in occurrence_dates:
-            event_day = occurrence_date.day
+        for occurrence_date in (
+            occurrence_dates
+        ):
+            event_day = (
+                occurrence_date.day
+            )
 
             if event_day not in events:
                 events[event_day] = []
@@ -363,13 +570,16 @@ def build_calendar_events(
                     "time": event_time,
                     "title": title,
                     "member": member,
-                    "color": member_colors.get(
-                        member,
-                        "#FFFFFF",
+                    "color": (
+                        member_colors.get(
+                            member,
+                            "#FFFFFF",
+                        )
                     ),
                     "source": source,
                     "repeat_type": (
-                        repeat_type or "none"
+                        repeat_type
+                        or "none"
                     ),
                 }
             )
@@ -379,13 +589,42 @@ def build_calendar_events(
 
 def get_member_colors(settings):
     return {
-        member["name"]: member["color"]
+        member["name"]: member[
+            "color"
+        ]
         for member in settings[
             "calendar"
         ][
             "members"
         ]
     }
+
+
+def split_event_time(event_time):
+    """
+    Convert a stored 12-hour event time into
+    hour, minute, and AM/PM values for editing.
+    """
+    if not event_time:
+        return 12, "00", "AM"
+
+    try:
+        time_part, ampm = (
+            event_time.split()
+        )
+
+        hour_text, minute = (
+            time_part.split(":")
+        )
+
+        return (
+            int(hour_text),
+            minute,
+            ampm,
+        )
+
+    except ValueError:
+        return 12, "00", "AM"
 
 
 @app.route("/")
@@ -412,17 +651,25 @@ def home():
         )
     )
 
-    weather_settings = settings["weather"]
+    weather_settings = (
+        settings["weather"]
+    )
 
     weather = get_weather(
-        weather_settings["location"],
-        weather_settings["forecast_days"],
+        weather_settings[
+            "location"
+        ],
+        weather_settings[
+            "forecast_days"
+        ],
     )
 
     database_events = get_events()
 
-    member_colors = get_member_colors(
-        settings
+    member_colors = (
+        get_member_colors(
+            settings
+        )
     )
 
     events = build_calendar_events(
@@ -430,6 +677,10 @@ def home():
         member_colors,
         year,
         month,
+    )
+
+    shopping = (
+        get_marvin_shopping_list()
     )
 
     return render_template(
@@ -441,6 +692,7 @@ def home():
         today=today.day,
         weather=weather,
         events=events,
+        shopping=shopping,
         members=settings[
             "calendar"
         ][
@@ -463,25 +715,40 @@ def add_event_page():
     ]
 
     if request.method == "POST":
-        date = request.form["date"]
+        date = request.form[
+            "date"
+        ]
 
-        hour = request.form["hour"]
-        minute = request.form["minute"]
-        ampm = request.form["ampm"]
+        hour = request.form[
+            "hour"
+        ]
+
+        minute = request.form[
+            "minute"
+        ]
+
+        ampm = request.form[
+            "ampm"
+        ]
 
         time = (
-            f"{hour}:{minute} {ampm}"
+            f"{hour}:{minute} "
+            f"{ampm}"
         )
 
         title = request.form[
             "title"
         ].strip()
 
-        member = request.form["member"]
+        member = request.form[
+            "member"
+        ]
 
-        repeat_type = request.form.get(
-            "repeat_type",
-            "none",
+        repeat_type = (
+            request.form.get(
+                "repeat_type",
+                "none",
+            )
         )
 
         repeat_until = (
@@ -537,37 +804,58 @@ def edit_event_page(event_id):
         "members"
     ]
 
-    event = get_event(event_id)
+    event = get_event(
+        event_id
+    )
 
     if event is None:
-        return "Event not found", 404
+        return (
+            "Event not found",
+            404
+        )
 
     if event[5] != "local":
         return (
-            "Google events cannot be edited here.",
+            "Google events cannot "
+            "be edited here.",
             403,
         )
 
     if request.method == "POST":
-        date = request.form["date"]
+        date = request.form[
+            "date"
+        ]
 
-        hour = request.form["hour"]
-        minute = request.form["minute"]
-        ampm = request.form["ampm"]
+        hour = request.form[
+            "hour"
+        ]
+
+        minute = request.form[
+            "minute"
+        ]
+
+        ampm = request.form[
+            "ampm"
+        ]
 
         time = (
-            f"{hour}:{minute} {ampm}"
+            f"{hour}:{minute} "
+            f"{ampm}"
         )
 
         title = request.form[
             "title"
         ].strip()
 
-        member = request.form["member"]
+        member = request.form[
+            "member"
+        ]
 
-        repeat_type = request.form.get(
-            "repeat_type",
-            "none",
+        repeat_type = (
+            request.form.get(
+                "repeat_type",
+                "none",
+            )
         )
 
         repeat_until = (
@@ -582,7 +870,9 @@ def edit_event_page(event_id):
             for person in members
         ]
 
-        if member not in valid_members:
+        if member not in (
+            valid_members
+        ):
             return (
                 (
                     f"Invalid family member: "
@@ -603,10 +893,41 @@ def edit_event_page(event_id):
 
         return redirect("/")
 
+    selected_hour, (
+        selected_minute
+    ), selected_ampm = (
+        split_event_time(
+            event[2]
+        )
+    )
+
+    event_data = {
+        "id": event[0],
+        "date": event[1],
+        "time": event[2],
+        "title": event[3],
+        "member": event[4],
+        "source": event[5],
+        "source_id": event[6],
+        "repeat_type": (
+            event[7] or "none"
+        ),
+        "repeat_until": event[8],
+    }
+
     return render_template(
         "edit_event.html",
-        event=event,
+        event=event_data,
         members=members,
+        selected_hour=(
+            selected_hour
+        ),
+        selected_minute=(
+            selected_minute
+        ),
+        selected_ampm=(
+            selected_ampm
+        ),
     )
 
 
@@ -615,18 +936,25 @@ def edit_event_page(event_id):
     methods=["POST"],
 )
 def delete_event_page(event_id):
-    delete_event(event_id)
+    delete_event(
+        event_id
+    )
+
     return redirect("/")
 
 
 @app.route(
-    "/dev-calendar/<int:year>/<int:month>"
+    "/dev-calendar/"
+    "<int:year>/<int:month>"
 )
 def dev_calendar(year, month):
     settings = load_settings()
 
     if month < 1 or month > 12:
-        return "Invalid month", 400
+        return (
+            "Invalid month",
+            400
+        )
 
     month_name = calendar.month_name[
         month
@@ -645,8 +973,10 @@ def dev_calendar(year, month):
 
     database_events = get_events()
 
-    member_colors = get_member_colors(
-        settings
+    member_colors = (
+        get_member_colors(
+            settings
+        )
     )
 
     events = build_calendar_events(
@@ -682,12 +1012,18 @@ def dev_calendar(year, month):
         ][
             "members"
         ],
-        previous_year=previous_year,
-        previous_month=previous_month,
+        previous_year=(
+            previous_year
+        ),
+        previous_month=(
+            previous_month
+        ),
         next_year=next_year,
         next_month=next_month,
     )
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(
+        debug=True
+    )
