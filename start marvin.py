@@ -15,7 +15,10 @@ from app import (
     get_weather,
 )
 
-from refresh_manager import refresh_manager
+from refresh_manager import (
+    RefreshFailure,
+    refresh_manager,
+)
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -242,9 +245,10 @@ def refresh_shopping():
     shopping = get_marvin_shopping_list()
 
     if not shopping["live"]:
-        raise RuntimeError(
+        raise RefreshFailure(
             "Home Assistant shopping list "
-            "is unavailable."
+            "is unavailable.",
+            result=shopping,
         )
 
     return shopping
