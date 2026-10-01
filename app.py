@@ -17,6 +17,7 @@ from database import (
 )
 
 from home_assistant import get_shopping_list
+from refresh_manager import refresh_manager
 
 
 app = Flask(__name__)
@@ -655,14 +656,19 @@ def home():
         settings["weather"]
     )
 
-    weather = get_weather(
-        weather_settings[
-            "location"
-        ],
-        weather_settings[
-            "forecast_days"
-        ],
+    weather = refresh_manager.get_result(
+        "Weather"
     )
+
+    if weather is None:
+        weather = get_weather(
+            weather_settings[
+                "location"
+            ],
+            weather_settings[
+                "forecast_days"
+            ],
+        )
 
     database_events = get_events()
 
@@ -679,9 +685,26 @@ def home():
         month,
     )
 
-    shopping = (
-        get_marvin_shopping_list()
+    shopping = refresh_manager.get_result(
+        "Shopping List"
     )
+
+    if shopping is None:
+        shopping = (
+            get_marvin_shopping_list()
+        )
+
+    refresh_status = {
+        "calendar": refresh_manager.get_status(
+            "Calendar"
+        ),
+        "shopping": refresh_manager.get_status(
+            "Shopping List"
+        ),
+        "weather": refresh_manager.get_status(
+            "Weather"
+        ),
+    }
 
     return render_template(
         "dashboard.html",
@@ -693,6 +716,7 @@ def home():
         weather=weather,
         events=events,
         shopping=shopping,
+        refresh_status=refresh_status,
         members=settings[
             "calendar"
         ][
