@@ -7,6 +7,9 @@ config/settings.local.json
 # Local database
 data/homebase.db
 
+# Local shopping-list cache
+data/shopping_list_cache.json
+
 # Python virtual environments
 .venv/
 venv/
