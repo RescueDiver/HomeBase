@@ -661,14 +661,19 @@ def home():
     )
 
     if weather is None:
-        weather = get_weather(
-            weather_settings[
-                "location"
-            ],
-            weather_settings[
-                "forecast_days"
-            ],
-        )
+        weather = {
+            "location": {
+                "name": weather_settings[
+                    "location"
+                ],
+                "state": "",
+            },
+            "temperature": "--",
+            "cloud_cover": "--",
+            "description": "Unavailable",
+            "icon": "🌡️",
+            "forecast": [],
+        }
 
     database_events = get_events()
 
