@@ -12,7 +12,7 @@
 
     <meta
         http-equiv="refresh"
-        content="300"
+        content="10"
     >
 
     <title>HomeBase</title>
@@ -104,6 +104,12 @@
             height: 12px;
 
             border-radius: 3px;
+        }
+
+        .refresh-problem {
+            margin-left: 6px;
+            font-size: 0.75em;
+            cursor: help;
         }
 
         /* =========================
@@ -543,6 +549,13 @@
 
                 <h1>
                     {{ month_name }} {{ year }}
+
+                    {% if refresh_status["calendar"]["problem"] %}
+                        <span
+                            class="refresh-problem"
+                            title="Calendar refresh has failed {{ refresh_status['calendar']['failures'] }} times. Last success: {{ refresh_status['calendar']['last_success'] or 'never' }}"
+                        >🖕</span>
+                    {% endif %}
                 </h1>
 
                 <div class="member-key">
@@ -686,6 +699,13 @@
 
                 <h2>
                     Weather
+
+                    {% if refresh_status["weather"]["problem"] %}
+                        <span
+                            class="refresh-problem"
+                            title="Weather refresh has failed {{ refresh_status['weather']['failures'] }} times. Last success: {{ refresh_status['weather']['last_success'] or 'never' }}"
+                        >🖕</span>
+                    {% endif %}
                 </h2>
 
                 <div class="current-weather">
@@ -758,6 +778,13 @@
 
                 <h2>
                     Shopping List
+
+                    {% if refresh_status["shopping"]["problem"] %}
+                        <span
+                            class="refresh-problem"
+                            title="Shopping refresh has failed {{ refresh_status['shopping']['failures'] }} times. Last success: {{ refresh_status['shopping']['last_success'] or 'never' }}"
+                        >🖕</span>
+                    {% endif %}
                 </h2>
 
                 {% if shopping["items"] %}
