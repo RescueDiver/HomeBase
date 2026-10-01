@@ -39,9 +39,14 @@
       "person2@example.com": "Person 2"
     },
     "color_members": {
+      "5": "Family",
       "10": "Person 3",
-      "11": "Family",
-      "5": "Family"
+      "11": "Family"
     }
+  },
+  "refresh": {
+    "shopping": 30,
+    "calendar": 60,
+    "weather": 600
   }
 }
