@@ -9,6 +9,16 @@ from datetime import datetime
 FAILURE_LIMIT = 5
 
 
+class RefreshFailure(Exception):
+    def __init__(
+        self,
+        message,
+        result=None,
+    ):
+        super().__init__(message)
+        self.result = result
+
+
 class RefreshManager:
     def __init__(self):
         self.tasks = {}
@@ -52,6 +62,29 @@ class RefreshManager:
             )
 
             return True
+
+        except RefreshFailure as error:
+            with self.lock:
+                if error.result is not None:
+                    task["last_result"] = (
+                        error.result
+                    )
+
+                task["consecutive_failures"] += 1
+                task["last_error"] = str(error)
+
+                failures = task[
+                    "consecutive_failures"
+                ]
+
+            print(
+                f"[{datetime.now().strftime('%I:%M:%S %p')}] "
+                f"{name} refresh failed "
+                f"({failures}/{FAILURE_LIMIT}): "
+                f"{error}"
+            )
+
+            return False
 
         except Exception as error:
             with self.lock:
