@@ -352,9 +352,21 @@ def main():
         )
     )
 
+    dinner_calendar_id = (
+        google_settings.get(
+            "dinner_calendar_id"
+        )
+    )
+
     if not family_calendar_id:
         raise ValueError(
             "Missing google_calendar.family_calendar_id "
+            "in config/settings.local.json"
+        )
+
+    if not dinner_calendar_id:
+        raise ValueError(
+            "Missing google_calendar.dinner_calendar_id "
             "in config/settings.local.json"
         )
 
@@ -376,9 +388,17 @@ def main():
         google_settings=google_settings,
         force_member="Family"
     )
+    dinner_count = sync_calendar(
+        service=service,
+        calendar_id=dinner_calendar_id,
+        calendar_name="Dinner Menu",
+        google_settings=google_settings,
+        force_member="Dinner"
+    )
 
     total_count = (
         family_count
+        + dinner_count
         + holiday_count
     )
 
