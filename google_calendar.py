@@ -1,4 +1,5 @@
 import json
+import sqlite3
 
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -13,6 +14,7 @@ from database import save_google_event
 
 
 BASE_DIR = Path(__file__).resolve().parent
+DATABASE_FILE = BASE_DIR / "data" / "homebase.db"
 
 CONFIG_DIR = BASE_DIR / "config"
 PRIVATE_DIR = BASE_DIR / "private"
@@ -338,6 +340,76 @@ def sync_calendar(
     return saved_count
 
 
+def remove_stale_google_events(
+    service,
+    calendar_ids,
+):
+    """
+    Remove Google events from Marvin's database
+    that no longer exist in Google Calendar.
+
+    Local Marvin events are never touched.
+    """
+
+    valid_source_ids = set()
+
+    for calendar_id in calendar_ids:
+        events = get_calendar_events(
+            service,
+            calendar_id,
+        )
+
+        for event in events:
+            event_id = event.get("id")
+
+            if event_id:
+                valid_source_ids.add(event_id)
+
+    connection = sqlite3.connect(
+        DATABASE_FILE
+    )
+
+    try:
+        cursor = connection.cursor()
+
+        stored_events = cursor.execute(
+            """
+            SELECT id, source_id
+            FROM events
+            WHERE source = 'google'
+            """
+        ).fetchall()
+
+        stale_ids = []
+
+        for event_id, source_id in stored_events:
+            if source_id not in valid_source_ids:
+                stale_ids.append(event_id)
+
+        for event_id in stale_ids:
+            cursor.execute(
+                """
+                DELETE FROM events
+                WHERE id = ?
+                AND source = 'google'
+                """,
+                (event_id,),
+            )
+
+        connection.commit()
+
+    finally:
+        connection.close()
+
+    print()
+    print("=" * 60)
+    print(
+        f"Removed {len(stale_ids)} stale "
+        f"Google Calendar events."
+    )
+    print("=" * 60)
+
+
 def main():
     settings = load_settings()
 
@@ -394,6 +466,14 @@ def main():
         calendar_name="Dinner Menu",
         google_settings=google_settings,
         force_member="Dinner"
+    )
+    remove_stale_google_events(
+        service,
+        [
+            family_calendar_id,
+            dinner_calendar_id,
+            HOLIDAY_CALENDAR_ID,
+        ],
     )
 
     total_count = (

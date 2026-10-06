@@ -44,13 +44,6 @@ def home_assistant_is_ready(
     url,
     token,
 ):
-    """
-    Check whether Home Assistant is reachable.
-
-    On Raspberry Pi, Marvin does NOT try to
-    start VMware or manage the Home Assistant VM.
-    It only checks whether Home Assistant is available.
-    """
     try:
         response = requests.get(
             f"{url.rstrip('/')}/api/",
@@ -76,13 +69,8 @@ def check_home_assistant(
         {},
     )
 
-    url = home_assistant.get(
-        "url"
-    )
-
-    token = home_assistant.get(
-        "token"
-    )
+    url = home_assistant.get("url")
+    token = home_assistant.get("token")
 
     print()
     print("=" * 60)
@@ -224,10 +212,6 @@ def start_marvin():
 
     print(
         "Starting dashboard..."
-    )
-
-    print(
-        "Network address:"
     )
 
     print(
