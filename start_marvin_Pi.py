@@ -4,16 +4,12 @@ import sys
 
 from pathlib import Path
 
-import requests
-
 from app import (
     app,
-    get_marvin_shopping_list,
     get_weather,
 )
 
 from refresh_manager import (
-    RefreshFailure,
     refresh_manager,
 )
 
@@ -40,68 +36,6 @@ def load_settings():
         return json.load(file)
 
 
-def home_assistant_is_ready(
-    url,
-    token,
-):
-    try:
-        response = requests.get(
-            f"{url.rstrip('/')}/api/",
-            headers={
-                "Authorization": (
-                    f"Bearer {token}"
-                )
-            },
-            timeout=5,
-        )
-
-        return response.status_code == 200
-
-    except requests.RequestException:
-        return False
-
-
-def check_home_assistant(
-    settings,
-):
-    home_assistant = settings.get(
-        "home_assistant",
-        {},
-    )
-
-    url = home_assistant.get("url")
-    token = home_assistant.get("token")
-
-    print()
-    print("=" * 60)
-    print("MARVIN - HOME ASSISTANT")
-    print("=" * 60)
-
-    if not url or not token:
-        print(
-            "Home Assistant settings missing."
-        )
-        return False
-
-    if home_assistant_is_ready(
-        url,
-        token,
-    ):
-        print(
-            "Home Assistant is online."
-        )
-        return True
-
-    print(
-        "Home Assistant is unavailable."
-    )
-
-    print(
-        "Marvin will continue without it."
-    )
-
-    return False
-
 
 def refresh_calendar():
     result = subprocess.run(
@@ -119,21 +53,6 @@ def refresh_calendar():
         )
 
     return True
-
-
-def refresh_shopping():
-    shopping = (
-        get_marvin_shopping_list()
-    )
-
-    if not shopping["live"]:
-        raise RefreshFailure(
-            "Home Assistant shopping list "
-            "is unavailable.",
-            result=shopping,
-        )
-
-    return shopping
 
 
 def refresh_weather():
@@ -159,14 +78,6 @@ def configure_refresh_system(
         {},
     )
 
-    refresh_manager.register(
-        "Shopping List",
-        refresh_settings.get(
-            "shopping",
-            30,
-        ),
-        refresh_shopping,
-    )
 
     refresh_manager.register(
         "Calendar",
@@ -195,9 +106,6 @@ def start_marvin():
     print("MARVIN PI STARTING")
     print("=" * 60)
 
-    check_home_assistant(
-        settings
-    )
 
     configure_refresh_system(
         settings
