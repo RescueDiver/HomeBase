@@ -439,7 +439,7 @@
         .sidebar {
             display: grid;
 
-            grid-template-rows: 42% 53%;
+            grid-template-rows: 42% 58%;
 
             min-width: 0;
             min-height: 0;
@@ -538,6 +538,96 @@
             font-size: clamp(8px, 0.6vw, 11px);
 
             color: #6b7280;
+        }
+
+        /* =========================
+           GOOGLE TASKS
+           ========================= */
+
+        .tasks {
+            min-width: 0;
+            min-height: 0;
+
+            padding: clamp(8px, 1vw, 20px);
+
+            overflow: hidden;
+
+            border-top: 2px solid #374151;
+        }
+
+        .tasks-header {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+
+            gap: 10px;
+        }
+
+        .tasks-count {
+            font-size: clamp(9px, 0.7vw, 13px);
+            color: #9ca3af;
+        }
+
+        .task-list {
+            display: grid;
+            gap: clamp(4px, 0.55vh, 8px);
+        }
+
+        .task-item {
+            min-width: 0;
+
+            padding:
+                clamp(5px, 0.55vh, 8px)
+                clamp(7px, 0.65vw, 10px);
+
+            border-left: 3px solid #a855f7;
+            border-radius: 5px;
+
+            background: #111827;
+        }
+
+        .task-title {
+            overflow: hidden;
+
+            font-size: clamp(11px, 0.92vw, 17px);
+            font-weight: bold;
+
+            line-height: 1.15;
+
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .task-meta {
+            display: flex;
+            justify-content: space-between;
+
+            gap: 8px;
+
+            margin-top: 2px;
+
+            font-size: clamp(8px, 0.65vw, 12px);
+
+            color: #9ca3af;
+        }
+
+        .task-list-name {
+            overflow: hidden;
+
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .task-due {
+            flex: 0 0 auto;
+        }
+
+        .no-tasks {
+            margin-top: 10px;
+
+            font-size: clamp(12px, 1vw, 18px);
+
+            color: #9ca3af;
         }
 
 
@@ -873,6 +963,71 @@
                 <div class="weather-source">
                     Weather data: Open-Meteo
                 </div>
+
+            </section>
+
+            <!-- GOOGLE TASKS -->
+
+            <section class="tasks">
+
+                <div class="tasks-header">
+
+                    <h2>
+                        Tasks
+
+                        {% if refresh_status["tasks"]["problem"] %}
+                            <span
+                                class="refresh-problem"
+                                title="Tasks refresh has failed {{ refresh_status['tasks']['failures'] }} times. Last success: {{ refresh_status['tasks']['last_success'] or 'never' }}"
+                            >🖕</span>
+                        {% endif %}
+                    </h2>
+
+                    <div class="tasks-count">
+                        {{ tasks["count"] }} open
+                    </div>
+
+                </div>
+
+                {% if tasks["tasks"] %}
+
+                    <div class="task-list">
+
+                        {% for task in tasks["tasks"] %}
+
+                            <div class="task-item">
+
+                                <div class="task-title">
+                                    {{ task["title"] }}
+                                </div>
+
+                                <div class="task-meta">
+
+                                    <span class="task-list-name">
+                                        {{ task["list_title"] }}
+                                    </span>
+
+                                    {% if task["due"] %}
+                                        <span class="task-due">
+                                            {{ task["due"] }}
+                                        </span>
+                                    {% endif %}
+
+                                </div>
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% else %}
+
+                    <div class="no-tasks">
+                        No open tasks
+                    </div>
+
+                {% endif %}
 
             </section>
 
