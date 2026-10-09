@@ -46,6 +46,7 @@
   },
   "refresh": {
     "calendar": 60,
+    "tasks": 60,
     "weather": 600
   }
 }
