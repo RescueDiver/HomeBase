@@ -17,7 +17,9 @@ SCOPES = [
 ]
 
 
-def get_google_tasks_service():
+def get_google_tasks_service(
+    allow_login=False,
+):
     credentials = None
 
     if TOKEN_FILE.exists():
@@ -34,6 +36,12 @@ def get_google_tasks_service():
         ):
             credentials.refresh(Request())
         else:
+            if not allow_login:
+                raise RuntimeError(
+                    "Google Tasks is not authorized yet. "
+                    "Run google_tasks.py once to authorize it."
+                )
+
             if not CREDENTIALS_FILE.exists():
                 raise FileNotFoundError(
                     f"Google credentials file not found: "
@@ -121,8 +129,12 @@ def get_open_tasks(
     return tasks
 
 
-def get_all_open_tasks():
-    service = get_google_tasks_service()
+def get_all_open_tasks(
+    allow_login=False,
+):
+    service = get_google_tasks_service(
+        allow_login=allow_login,
+    )
 
     results = []
 
@@ -154,7 +166,9 @@ def get_all_open_tasks():
 
 
 def main():
-    items = get_all_open_tasks()
+    items = get_all_open_tasks(
+        allow_login=True,
+    )
 
     print()
     print("=" * 60)
