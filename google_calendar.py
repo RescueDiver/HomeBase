@@ -90,7 +90,7 @@ def get_google_calendar_service():
             )
 
             credentials = flow.run_local_server(
-                port=0
+                port=45157
             )
 
         PRIVATE_DIR.mkdir(
