@@ -558,6 +558,15 @@ def home():
         "Weather"
     )
 
+    tasks = refresh_manager.get_result(
+        "Tasks",
+        {
+            "tasks": [],
+            "count": 0,
+            "showing": 0,
+        },
+    )
+
     if weather is None:
         weather = {
             "location": {
@@ -596,6 +605,9 @@ def home():
         "weather": refresh_manager.get_status(
             "Weather"
         ),
+        "tasks": refresh_manager.get_status(
+            "Tasks"
+        ),
     }
 
     return render_template(
@@ -606,6 +618,7 @@ def home():
         month_weeks=month_weeks,
         today=today.day,
         weather=weather,
+        tasks=tasks,
         events=events,
         refresh_status=refresh_status,
         members=settings[
