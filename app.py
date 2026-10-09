@@ -16,7 +16,6 @@ from database import (
     update_event,
 )
 
-from home_assistant import get_shopping_list
 from refresh_manager import refresh_manager
 
 
@@ -36,9 +35,6 @@ EXAMPLE_SETTINGS_FILE = (
     CONFIG_DIR / "settings.example.json"
 )
 
-SHOPPING_CACHE_FILE = (
-    DATA_DIR / "shopping_list_cache.json"
-)
 
 
 def load_settings():
@@ -300,104 +296,6 @@ def get_weather(
         "forecast": forecast,
     }
 
-
-def save_shopping_cache(items):
-    """
-    Save the most recent successful shopping list.
-
-    This allows Marvin to keep displaying the last
-    known list if Home Assistant is temporarily offline.
-    """
-    DATA_DIR.mkdir(
-        parents=True,
-        exist_ok=True
-    )
-
-    cache_data = {
-        "updated": (
-            datetime.now().isoformat()
-        ),
-        "items": items,
-    }
-
-    SHOPPING_CACHE_FILE.write_text(
-        json.dumps(
-            cache_data,
-            indent=2
-        ),
-        encoding="utf-8"
-    )
-
-
-def load_shopping_cache():
-    """
-    Load the last successful shopping list.
-    """
-    if not SHOPPING_CACHE_FILE.exists():
-        return [], None
-
-    try:
-        cache_data = json.loads(
-            SHOPPING_CACHE_FILE.read_text(
-                encoding="utf-8"
-            )
-        )
-
-        return (
-            cache_data.get(
-                "items",
-                []
-            ),
-            cache_data.get(
-                "updated"
-            ),
-        )
-
-    except (
-        OSError,
-        json.JSONDecodeError,
-    ):
-        return [], None
-
-
-def get_marvin_shopping_list():
-    """
-    Get the live Alexa shopping list.
-
-    If Home Assistant is unavailable, return the
-    most recently cached list instead of crashing
-    Marvin.
-    """
-    try:
-        items = get_shopping_list()
-
-        save_shopping_cache(
-            items
-        )
-
-        return {
-            "items": items,
-            "live": True,
-            "updated": (
-                datetime.now().isoformat()
-            ),
-        }
-
-    except Exception as error:
-        print(
-            "Home Assistant shopping list "
-            f"unavailable: {error}"
-        )
-
-        cached_items, updated = (
-            load_shopping_cache()
-        )
-
-        return {
-            "items": cached_items,
-            "live": False,
-            "updated": updated,
-        }
 
 
 def get_event_occurrences(
@@ -690,21 +588,10 @@ def home():
         month,
     )
 
-    shopping = refresh_manager.get_result(
-        "Shopping List"
-    )
-
-    if shopping is None:
-        shopping = (
-            get_marvin_shopping_list()
-        )
 
     refresh_status = {
         "calendar": refresh_manager.get_status(
             "Calendar"
-        ),
-        "shopping": refresh_manager.get_status(
-            "Shopping List"
         ),
         "weather": refresh_manager.get_status(
             "Weather"
@@ -720,7 +607,6 @@ def home():
         today=today.day,
         weather=weather,
         events=events,
-        shopping=shopping,
         refresh_status=refresh_status,
         members=settings[
             "calendar"
