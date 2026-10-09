@@ -13,6 +13,10 @@ from refresh_manager import (
     refresh_manager,
 )
 
+from tasks_service import (
+    get_marvin_tasks,
+)
+
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -55,6 +59,10 @@ def refresh_calendar():
     return True
 
 
+def refresh_tasks():
+    return get_marvin_tasks()
+
+
 def refresh_weather():
     settings = load_settings()
 
@@ -86,6 +94,15 @@ def configure_refresh_system(
             60,
         ),
         refresh_calendar,
+    )
+
+    refresh_manager.register(
+        "Tasks",
+        refresh_settings.get(
+            "tasks",
+            60,
+        ),
+        refresh_tasks,
     )
 
     refresh_manager.register(
