@@ -45,7 +45,6 @@
     }
   },
   "refresh": {
-    "shopping": 30,
     "calendar": 60,
     "weather": 600
   }
