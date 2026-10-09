@@ -32,6 +32,10 @@
       }
     ]
   },
+  "google_tasks": {
+    "max_display": 12,
+    "include_lists": []
+  },
   "google_calendar": {
     "family_calendar_id": "your-family-calendar-id",
     "creator_members": {
