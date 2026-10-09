@@ -1,3 +1,6 @@
+import argparse
+import re
+
 from pathlib import Path
 
 from google.auth.transport.requests import Request
@@ -9,7 +12,7 @@ from googleapiclient.discovery import build
 BASE_DIR = Path(__file__).resolve().parent
 PRIVATE_DIR = BASE_DIR / "private"
 
-TOKEN_FILE = PRIVATE_DIR / "tasks_token.json"
+DEFAULT_TOKEN_FILE = PRIVATE_DIR / "tasks_token.json"
 CREDENTIALS_FILE = PRIVATE_DIR / "credentials.json"
 
 SCOPES = [
@@ -17,14 +20,48 @@ SCOPES = [
 ]
 
 
+def safe_account_slug(account_name):
+    slug = re.sub(
+        r"[^a-z0-9]+",
+        "_",
+        account_name.strip().lower(),
+    ).strip("_")
+
+    if not slug:
+        raise ValueError(
+            "Account name must contain letters or numbers."
+        )
+
+    return slug
+
+
+def token_file_for_account(
+    account_name=None,
+):
+    if not account_name:
+        return DEFAULT_TOKEN_FILE
+
+    return (
+        PRIVATE_DIR
+        / f"tasks_token_{safe_account_slug(account_name)}.json"
+    )
+
+
 def get_google_tasks_service(
     allow_login=False,
+    token_file=None,
 ):
+    token_file = (
+        Path(token_file)
+        if token_file
+        else DEFAULT_TOKEN_FILE
+    )
+
     credentials = None
 
-    if TOKEN_FILE.exists():
+    if token_file.exists():
         credentials = Credentials.from_authorized_user_file(
-            TOKEN_FILE,
+            token_file,
             SCOPES,
         )
 
@@ -38,8 +75,7 @@ def get_google_tasks_service(
         else:
             if not allow_login:
                 raise RuntimeError(
-                    "Google Tasks is not authorized yet. "
-                    "Run google_tasks.py once to authorize it."
+                    "Google Tasks is not authorized for this account."
                 )
 
             if not CREDENTIALS_FILE.exists():
@@ -62,7 +98,7 @@ def get_google_tasks_service(
             exist_ok=True,
         )
 
-        TOKEN_FILE.write_text(
+        token_file.write_text(
             credentials.to_json(),
             encoding="utf-8",
         )
@@ -131,9 +167,12 @@ def get_open_tasks(
 
 def get_all_open_tasks(
     allow_login=False,
+    token_file=None,
+    account_name="Primary",
 ):
     service = get_google_tasks_service(
         allow_login=allow_login,
+        token_file=token_file,
     )
 
     results = []
@@ -156,6 +195,7 @@ def get_all_open_tasks(
 
             results.append(
                 {
+                    "account_name": account_name,
                     "list_id": task_list_id,
                     "list_title": task_list_title,
                     "task": task,
@@ -165,14 +205,47 @@ def get_all_open_tasks(
     return results
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Authorize and test Google Tasks accounts for Marvin."
+    )
+
+    parser.add_argument(
+        "--account",
+        help=(
+            "Account label. Example: "
+            "python google_tasks.py --account Amber"
+        ),
+    )
+
+    return parser.parse_args()
+
+
 def main():
+    args = parse_args()
+
+    account_name = (
+        args.account.strip()
+        if args.account
+        else "Primary"
+    )
+
+    token_file = token_file_for_account(
+        args.account
+    )
+
     items = get_all_open_tasks(
         allow_login=True,
+        token_file=token_file,
+        account_name=account_name,
     )
 
     print()
     print("=" * 60)
-    print("MARVIN - GOOGLE TASKS")
+    print(
+        f"MARVIN - GOOGLE TASKS - "
+        f"{account_name.upper()}"
+    )
     print("=" * 60)
 
     if not items:
@@ -189,6 +262,9 @@ def main():
     print("=" * 60)
     print(
         f"{len(items)} open task(s)."
+    )
+    print(
+        f"Token file: {token_file.name}"
     )
 
 
