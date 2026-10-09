@@ -445,8 +445,7 @@
             min-height: 0;
         }
 
-        .weather,
-        .shopping {
+        .weather {
             min-width: 0;
             min-height: 0;
 
@@ -541,37 +540,6 @@
             color: #6b7280;
         }
 
-        /* =========================
-           SHOPPING
-           ========================= */
-
-        .shopping-list {
-            margin: 0;
-            padding-left: clamp(16px, 1.3vw, 24px);
-
-            font-size: clamp(12px, 1vw, 20px);
-            line-height: 1.45;
-        }
-
-        .shopping-list li {
-            margin-bottom: 4px;
-        }
-
-        .shopping-empty,
-        .shopping-unavailable {
-            font-size: clamp(12px, 1vw, 20px);
-            line-height: 1.4;
-
-            color: #9ca3af;
-        }
-
-        .shopping-status {
-            margin-top: 12px;
-
-            font-size: 12px;
-
-            color: #6b7280;
-        }
 
         /* =========================
            BOTTOM BAR
@@ -908,60 +876,6 @@
 
             </section>
 
-            <!-- =========================
-                 SHOPPING
-                 ========================= -->
-
-            <section class="shopping">
-
-                <h2>
-                    Shopping List
-
-                    {% if refresh_status["shopping"]["problem"] %}
-                        <span
-                            class="refresh-problem"
-                            title="Shopping refresh has failed {{ refresh_status['shopping']['failures'] }} times. Last success: {{ refresh_status['shopping']['last_success'] or 'never' }}"
-                        >🖕</span>
-                    {% endif %}
-                </h2>
-
-                {% if shopping["items"] %}
-
-                    <ul class="shopping-list">
-
-                        {% for item in shopping["items"] %}
-
-                            <li>
-                                {{ item["summary"] }}
-                            </li>
-
-                        {% endfor %}
-
-                    </ul>
-
-                    {% if not shopping["live"] %}
-
-                        <div class="shopping-status">
-                            Home Assistant offline — showing last saved list.
-                        </div>
-
-                    {% endif %}
-
-                {% elif shopping["live"] %}
-
-                    <div class="shopping-empty">
-                        Shopping list is empty.
-                    </div>
-
-                {% else %}
-
-                    <div class="shopping-unavailable">
-                        Shopping list unavailable.
-                    </div>
-
-                {% endif %}
-
-            </section>
 
         </aside>
 
