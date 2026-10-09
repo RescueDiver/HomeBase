@@ -8,6 +8,7 @@ from google_tasks import get_all_open_tasks
 
 BASE_DIR = Path(__file__).resolve().parent
 CONFIG_DIR = BASE_DIR / "config"
+PRIVATE_DIR = BASE_DIR / "private"
 
 PRIVATE_SETTINGS_FILE = CONFIG_DIR / "settings.local.json"
 EXAMPLE_SETTINGS_FILE = CONFIG_DIR / "settings.example.json"
@@ -34,6 +35,50 @@ def load_task_settings():
         "google_tasks",
         {},
     )
+
+
+def discover_accounts():
+    accounts = []
+
+    primary = (
+        PRIVATE_DIR
+        / "tasks_token.json"
+    )
+
+    if primary.exists():
+        accounts.append(
+            {
+                "name": "Eric",
+                "token_file": primary,
+            }
+        )
+
+    for token_file in sorted(
+        PRIVATE_DIR.glob(
+            "tasks_token_*.json"
+        )
+    ):
+        suffix = token_file.stem.replace(
+            "tasks_token_",
+            "",
+            1,
+        )
+
+        account_name = (
+            suffix.replace(
+                "_",
+                " ",
+            ).title()
+        )
+
+        accounts.append(
+            {
+                "name": account_name,
+                "token_file": token_file,
+            }
+        )
+
+    return accounts
 
 
 def parse_due_date(due_text):
@@ -114,6 +159,7 @@ def task_sort_key(item):
     return (
         0 if due_date else 1,
         due_date or date.max,
+        item["account_name"].lower(),
         item["list_title"].lower(),
         item["task"].get(
             "title",
@@ -156,14 +202,26 @@ def get_marvin_tasks():
         [],
     )
 
-    raw_tasks = [
-        item
-        for item in get_all_open_tasks()
-        if list_is_included(
-            item["list_title"],
-            include_lists,
+    raw_tasks = []
+
+    for account in discover_accounts():
+        account_tasks = get_all_open_tasks(
+            token_file=account[
+                "token_file"
+            ],
+            account_name=account[
+                "name"
+            ],
         )
-    ]
+
+        raw_tasks.extend(
+            item
+            for item in account_tasks
+            if list_is_included(
+                item["list_title"],
+                include_lists,
+            )
+        )
 
     raw_tasks.sort(
         key=task_sort_key
@@ -187,6 +245,9 @@ def get_marvin_tasks():
                     "title",
                     "(No title)",
                 ),
+                "account_name": item[
+                    "account_name"
+                ],
                 "list_title": item[
                     "list_title"
                 ],
@@ -205,4 +266,7 @@ def get_marvin_tasks():
         "tasks": display_tasks,
         "count": len(raw_tasks),
         "showing": len(display_tasks),
+        "accounts": len(
+            discover_accounts()
+        ),
     }
