@@ -39,15 +39,13 @@
 
         /* =====================================================
            MAIN SCREEN
-           90% CONTENT / 10% SHOPPING
            ===================================================== */
 
         .dashboard {
             display: grid;
 
             grid-template-columns:
-                minmax(0, 9fr)
-                minmax(120px, 1fr);
+                minmax(0, 1fr);
 
             width: 100%;
             height: 100vh;
@@ -578,81 +576,12 @@
             font-weight: bold;
         }
 
-        /* =====================================================
-           SHOPPING
-           10% WIDTH
-           SINGLE COLUMN
-           ===================================================== */
-
-        .shopping-panel {
-            display: flex;
-            flex-direction: column;
-
-            min-width: 0;
-            min-height: 0;
-
-            padding:
-                clamp(8px, 0.7vw, 12px)
-                clamp(7px, 0.6vw, 10px);
-        }
-
-        .shopping-title {
-            flex-shrink: 0;
-
-            margin-bottom: clamp(8px, 1vh, 14px);
-
-            text-align: center;
-
-            font-size: clamp(12px, 1vw, 17px);
-            font-weight: bold;
-        }
-
-        .shopping-list {
-            margin: 0;
-
-            padding-left: clamp(16px, 1.2vw, 22px);
-
-            font-size: clamp(11px, 0.9vw, 15px);
-            line-height: 1.45;
-
-            overflow: hidden;
-        }
-
-        .shopping-list li {
-            margin-bottom: clamp(4px, 0.45vh, 7px);
-        }
-
-        .shopping-empty,
-        .shopping-unavailable {
-            font-size: clamp(10px, 0.85vw, 14px);
-
-            color: #9ca3af;
-
-            text-align: center;
-        }
-
-        .shopping-status {
-            margin-top: auto;
-            padding-top: 8px;
-
-            font-size: clamp(8px, 0.7vw, 11px);
-
-            color: #6b7280;
-
-            text-align: center;
-        }
 
         /* =====================================================
            SMALLER SCREENS
            ===================================================== */
 
         @media (max-width: 1100px) {
-
-            .dashboard {
-                grid-template-columns:
-                    minmax(0, 91fr)
-                    minmax(100px, 9fr);
-            }
 
             .top-bar {
                 grid-template-columns:
@@ -683,7 +612,7 @@
     <div class="dashboard">
 
         <!-- =================================================
-             MAIN 90%
+             MAIN
              ================================================= -->
 
         <main class="main-area">
@@ -977,53 +906,6 @@
 
         </main>
 
-        <!-- =================================================
-             SHOPPING 10%
-             ================================================= -->
-
-        <aside class="panel shopping-panel">
-
-            <div class="shopping-title">
-                SHOPPING
-            </div>
-
-            {% if shopping["items"] %}
-
-                <ul class="shopping-list">
-
-                    {% for item in shopping["items"] %}
-
-                        <li>
-                            {{ item["summary"] }}
-                        </li>
-
-                    {% endfor %}
-
-                </ul>
-
-                {% if not shopping["live"] %}
-
-                    <div class="shopping-status">
-                        Showing saved list
-                    </div>
-
-                {% endif %}
-
-            {% elif shopping["live"] %}
-
-                <div class="shopping-empty">
-                    List empty
-                </div>
-
-            {% else %}
-
-                <div class="shopping-unavailable">
-                    Unavailable
-                </div>
-
-            {% endif %}
-
-        </aside>
 
     </div>
 
