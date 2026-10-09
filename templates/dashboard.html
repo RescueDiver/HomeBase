@@ -620,6 +620,19 @@
 
         .task-due {
             flex: 0 0 auto;
+            font-weight: bold;
+        }
+
+        .task-due.overdue {
+            color: #fca5a5;
+        }
+
+        .task-due.today {
+            color: #fde68a;
+        }
+
+        .task-due.tomorrow {
+            color: #bfdbfe;
         }
 
         .no-tasks {
@@ -1008,7 +1021,7 @@
                                     </span>
 
                                     {% if task["due"] %}
-                                        <span class="task-due">
+                                        <span class="task-due {{ task['due_status'] }}">
                                             {{ task["due"] }}
                                         </span>
                                     {% endif %}
